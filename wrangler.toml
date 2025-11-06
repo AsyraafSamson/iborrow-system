@@ -1,0 +1,18 @@
+# wrangler.toml
+name = "iborrow-system"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+pages_build_output_dir = ".next"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "iborrow"
+database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"  # Ganti dengan actual D1 database ID anda
+
+# Untuk development local
+[env.development]
+d1_databases = [
+  { binding = "DB", database_name = "iborrow-db", database_id = "local" }
+]

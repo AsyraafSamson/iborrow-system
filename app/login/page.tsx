@@ -1,26 +1,53 @@
+// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simple hardcoded authentication - PROPER APPROACH
-    if (username === "admin" && password === "admin") {
-      router.push("/admin/dashboard");
-    } else if (username === "staff" && password === "staff") {
-      router.push("/staff-ict/dashboard");  // ✅ UPDATED: staff-ict/dashboard
-    } else if (username === "user" && password === "user") {
-      router.push("/user/dashboard");
-    } else {
-      alert("Username atau password salah! Gunakan: admin/admin, staff/staff, user/user");
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Store user data in localStorage or context
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Redirect based on user role
+        router.push(data.redirectTo);
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Quick login for testing (optional - bisa dihapus nanti)
+  const handleQuickLogin = (testEmail: string, testPassword: string) => {
+    setEmail(testEmail);
+    setPassword(testPassword);
   };
 
   return (
@@ -35,19 +62,27 @@ export default function LoginPage() {
           <p className="text-gray-600 mt-2">ILKKM Johor Bahru</p>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+            {error}
+          </div>
+        )}
+
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Username
+              Email
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Masukkan username"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Masukkan email"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
+              disabled={loading}
             />
           </div>
 
@@ -62,24 +97,44 @@ export default function LoginPage() {
               placeholder="Masukkan password"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               required
+              disabled={loading}
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Log Masuk
+            {loading ? 'Logging in...' : 'Log Masuk'}
           </button>
         </form>
 
-        {/* Test Accounts Info */}
+        {/* Quick Test Buttons */}
         <div className="mt-8 p-4 bg-gray-50 rounded-xl">
-          <h3 className="font-semibold text-gray-900 mb-2">Test Accounts:</h3>
-          <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Admin:</strong> admin / admin</p>
-            <p><strong>Staff ICT:</strong> staff / staff</p>
-            <p><strong>User:</strong> user / user</p>
+          <h3 className="font-semibold text-gray-900 mb-3">Test Accounts:</h3>
+          <div className="space-y-2">
+            <button
+              onClick={() => handleQuickLogin('admin@iborrow.com', 'admin123')}
+              className="w-full text-left p-2 bg-white rounded-lg border hover:bg-gray-100 transition-colors"
+              disabled={loading}
+            >
+              <strong>Admin:</strong> admin@iborrow.com / admin123
+            </button>
+            <button
+              onClick={() => handleQuickLogin('staff@iborrow.com', 'staff123')}
+              className="w-full text-left p-2 bg-white rounded-lg border hover:bg-gray-100 transition-colors"
+              disabled={loading}
+            >
+              <strong>Staff ICT:</strong> staff@iborrow.com / staff123
+            </button>
+            <button
+              onClick={() => handleQuickLogin('user@iborrow.com', 'user123')}
+              className="w-full text-left p-2 bg-white rounded-lg border hover:bg-gray-100 transition-colors"
+              disabled={loading}
+            >
+              <strong>User:</strong> user@iborrow.com / user123
+            </button>
           </div>
         </div>
       </div>

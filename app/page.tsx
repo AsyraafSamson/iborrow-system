@@ -30,6 +30,13 @@ export default function HomePage() {
           <p>Gunakan: admin/admin, staff/staff, user/user</p>
           <p>Sistem Peminjaman Barang ICT</p>
         </div>
+
+        {/* COPYRIGHT */}
+        <div className="pt-4 border-t border-gray-200">
+          <p className="text-xs text-gray-400">
+            &copy; 2025 Asyraaf Samson. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   );

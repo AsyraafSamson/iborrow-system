@@ -2,69 +2,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+interface Barang {
+  id: string;
+  nama: string;
+  kategori: string;
+  status: string;
+  kuantiti: number;
+  hargaSewa: number;
+  lokasi: string;
+  noSiri: string;
+  tarikhTambah: string;
+}
 
 export default function AdminBarangPage() {
   const router = useRouter();
   
-  const [barang, setBarang] = useState([
-    { 
-      id: 1, 
-      nama: "Laptop Dell XPS 13", 
-      kategori: "elektronik", 
-      status: "tersedia", 
-      kuantiti: 5,
-      hargaSewa: 15.00,
-      lokasi: "Bilik Server A",
-      noSiri: "LAP-001",
-      tarikhTambah: "2025-01-15"
-    },
-    { 
-      id: 2, 
-      nama: "Projector Epson EB-X41", 
-      kategori: "elektronik", 
-      status: "tersedia", 
-      kuantiti: 3,
-      hargaSewa: 20.00,
-      lokasi: "Bilik Media",
-      noSiri: "PROJ-001", 
-      tarikhTambah: "2025-02-10"
-    },
-    { 
-      id: 3, 
-      nama: "Kamera Canon EOS R6", 
-      kategori: "fotografi", 
-      status: "rosak", 
-      kuantiti: 1,
-      hargaSewa: 25.00,
-      lokasi: "Bilik Fotografi",
-      noSiri: "CAM-001",
-      tarikhTambah: "2025-01-20"
-    },
-    { 
-      id: 4, 
-      nama: "Tripod Manfrotto", 
-      kategori: "fotografi", 
-      status: "dipinjam", 
-      kuantiti: 2,
-      hargaSewa: 5.00,
-      lokasi: "Bilik Fotografi",
-      noSiri: "TRIP-001",
-      tarikhTambah: "2025-03-05"
-    },
-    { 
-      id: 5, 
-      nama: "Calculator Scientific Casio", 
-      kategori: "alat_tulis", 
-      status: "tersedia", 
-      kuantiti: 8,
-      hargaSewa: 2.00,
-      lokasi: "Kaunter Pinjaman",
-      noSiri: "CALC-001",
-      tarikhTambah: "2025-02-28"
-    },
-  ]);
-
+  const [barang, setBarang] = useState<Barang[]>([]);
+  const [loading, setLoading] = useState(true);
   const [carian, setCarian] = useState("");
   const [filterKategori, setFilterKategori] = useState("semua");
   const [filterStatus, setFilterStatus] = useState("semua");
@@ -77,6 +33,30 @@ export default function AdminBarangPage() {
     lokasi: "",
     noSiri: ""
   });
+
+  // ✅ FETCH DATA FROM API
+  useEffect(() => {
+    fetchBarang();
+  }, []);
+
+  const fetchBarang = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/barang');
+      const data = await response.json();
+      
+      if (data.success) {
+        setBarang(data.data);
+      } else {
+        alert('Gagal memuat data barang: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Failed to fetch barang:', error);
+      alert('Ralat rangkaian - gagal memuat data barang');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // ✅ Navigation handlers untuk bottom navigation
   const handleKeDashboard = () => {
@@ -105,51 +85,124 @@ export default function AdminBarangPage() {
     }
   };
 
-  const handleUpdateStatus = (id: number, statusBaru: string) => {
-    setBarang(barang.map(item =>
-      item.id === id ? { ...item, status: statusBaru } : item
-    ));
-    alert(`Status barang berjaya dikemaskini!`);
+  // ✅ UPDATE STATUS DENGAN API
+  const handleUpdateStatus = async (id: string, statusBaru: string) => {
+    try {
+      const response = await fetch('/api/admin/barang', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id: id,
+          updates: { status: statusBaru } 
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBarang(barang.map(item =>
+          item.id === id ? { ...item, status: statusBaru } : item
+        ));
+        alert(data.message || `Status barang berjaya dikemaskini!`);
+      } else {
+        alert(data.error || 'Gagal mengemaskini status');
+        fetchBarang(); // Refresh data
+      }
+    } catch (error) {
+      alert('Ralat rangkaian - gagal mengemaskini status');
+      fetchBarang(); // Refresh data
+    }
   };
 
-  const handleUpdateKuantiti = (id: number, kuantitiBaru: number) => {
+  // ✅ UPDATE KUANTITI DENGAN API
+  const handleUpdateKuantiti = async (id: string, kuantitiBaru: number) => {
     if (kuantitiBaru < 0) return;
-    setBarang(barang.map(item =>
-      item.id === id ? { ...item, kuantiti: kuantitiBaru } : item
-    ));
-    alert(`Kuantiti barang berjaya dikemaskini!`);
+    try {
+      const response = await fetch('/api/admin/barang', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          id: id,
+          updates: { kuantiti: kuantitiBaru } 
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setBarang(barang.map(item =>
+          item.id === id ? { ...item, kuantiti: kuantitiBaru } : item
+        ));
+        alert(data.message || `Kuantiti barang berjaya dikemaskini!`);
+      } else {
+        alert(data.error || 'Gagal mengemaskini kuantiti');
+        fetchBarang(); // Refresh data
+      }
+    } catch (error) {
+      alert('Ralat rangkaian - gagal mengemaskini kuantiti');
+      fetchBarang(); // Refresh data
+    }
   };
 
-  const handleTambahBarang = () => {
+  // ✅ TAMBAH BARANG DENGAN API
+  const handleTambahBarang = async () => {
     if (!barangBaru.nama || !barangBaru.noSiri) {
       alert("Sila isi nama barang dan nombor siri!");
       return;
     }
 
-    const baru = {
-      id: barang.length + 1,
-      ...barangBaru,
-      status: "tersedia",
-      tarikhTambah: new Date().toISOString().split('T')[0]
-    };
+    try {
+      const response = await fetch('/api/admin/barang', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(barangBaru),
+      });
 
-    setBarang([...barang, baru]);
-    setModalTambah(false);
-    setBarangBaru({
-      nama: "",
-      kategori: "elektronik",
-      kuantiti: 1,
-      hargaSewa: 0,
-      lokasi: "",
-      noSiri: ""
-    });
-    alert("Barang baru berjaya ditambah!");
+      const data = await response.json();
+
+      if (data.success) {
+        setBarang([...barang, data.data]);
+        setModalTambah(false);
+        setBarangBaru({
+          nama: "",
+          kategori: "elektronik",
+          kuantiti: 1,
+          hargaSewa: 0,
+          lokasi: "",
+          noSiri: ""
+        });
+        alert(data.message || "Barang baru berjaya ditambah!");
+      } else {
+        alert(data.error || "Gagal menambah barang");
+      }
+    } catch (error) {
+      alert('Ralat rangkaian - gagal menambah barang');
+    }
   };
 
-  const handleHapusBarang = (id: number) => {
+  // ✅ HAPUS BARANG DENGAN API
+  const handleHapusBarang = async (id: string) => {
     if (confirm("Adakah anda pasti ingin hapus barang ini?")) {
-      setBarang(barang.filter(item => item.id !== id));
-      alert("Barang berjaya dipadam!");
+      try {
+        const response = await fetch(`/api/admin/barang?id=${id}`, { 
+          method: 'DELETE' 
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setBarang(barang.filter(item => item.id !== id));
+          alert(data.message || "Barang berjaya dipadam!");
+        } else {
+          alert(data.error || "Gagal memadam barang");
+          fetchBarang(); // Refresh data
+        }
+      } catch (error) {
+        alert('Ralat rangkaian - gagal memadam barang');
+        fetchBarang(); // Refresh data
+      }
     }
   };
 
@@ -201,6 +254,19 @@ export default function AdminBarangPage() {
     const matchesStatus = filterStatus === "semua" || item.status === filterStatus;
     return matchesCarian && matchesKategori && matchesStatus;
   });
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-3">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-sm">Memuat data barang...</p>
+          <p className="text-gray-400 text-xs mt-1">Sila tunggu sebentar</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 pb-24">
