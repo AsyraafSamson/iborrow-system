@@ -1,0 +1,13 @@
+
+name = "d1-proxy"
+main = "d1-proxy-worker.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "iborrow"
+database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
+
+[dev]
+# Use remote D1 database for development
+remote = true

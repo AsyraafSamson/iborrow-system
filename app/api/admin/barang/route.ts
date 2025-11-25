@@ -1,7 +1,7 @@
-// app/api/admin/barang/route.ts
+// app/api/admin/barang/route.ts - UPDATED FOR REAL D1
 import { NextRequest, NextResponse } from 'next/server';
 
-// Development storage - akan reset bila server restart
+// Development storage fallback
 let devBarang: any[] = [
   {
     id: 'B001',
@@ -13,46 +13,22 @@ let devBarang: any[] = [
     lokasi: 'Bilik Server A',
     noSiri: 'LAP-001',
     tarikhTambah: '2025-01-15'
-  },
-  {
-    id: 'B002',
-    nama: 'Projector Epson EB-X41',
-    kategori: 'elektronik', 
-    status: 'tersedia',
-    kuantiti: 3,
-    hargaSewa: 20.00,
-    lokasi: 'Bilik Media',
-    noSiri: 'PROJ-001',
-    tarikhTambah: '2025-02-10'
   }
 ];
-
-// Helper function untuk D1 connection
-async function getD1Connection() {
-  // Dalam production, D1 akan available melalui process.env.DB
-  if (process.env.NODE_ENV === 'production' && process.env.DB) {
-    return {
-      db: process.env.DB,
-      isProduction: true
-    };
-  }
-  return {
-    db: null,
-    isProduction: false
-  };
-}
 
 // GET /api/admin/barang - Get all barang
 export async function GET(request: NextRequest) {
   try {
     console.log('📦 Fetching barang data...');
     
-    const { db, isProduction } = await getD1Connection();
+    // 🚀 REAL D1 CONNECTION
+    // @ts-ignore
+    const db = process.env.DB;
     
-    if (isProduction && db) {
+    if (db) {
       console.log('🚀 Using REAL D1 database...');
       try {
-        // @ts-ignore - D1 available in production
+        // @ts-ignore
         const result = await db.prepare(
           'SELECT * FROM barang ORDER BY created_at DESC'
         ).all();
@@ -69,19 +45,31 @@ export async function GET(request: NextRequest) {
           tarikhTambah: item.tarikh_tambah
         }));
 
-        console.log(`✅ Found ${barang.length} barang in D1`);
-        return NextResponse.json({ success: true, data: barang });
-      } catch (d1Error) {
-        console.error('D1 Error, falling back to dev storage:', d1Error);
-        // Fallback to dev storage if D1 fails
-        return NextResponse.json({ success: true, data: devBarang });
+        console.log(`✅ Found ${barang.length} barang in REAL D1`);
+        return NextResponse.json({ 
+          success: true, 
+          data: barang,
+          usingRealDatabase: true 
+        });
+      } catch (d1Error: any) {
+        console.error('❌ D1 Error:', d1Error.message);
+        // Fallback to dev storage
+        return NextResponse.json({ 
+          success: true, 
+          data: devBarang,
+          usingRealDatabase: false 
+        });
       }
     } else {
       // Development: use in-memory storage
       console.log('🛠️ Using development storage...');
-      return NextResponse.json({ success: true, data: devBarang });
+      return NextResponse.json({ 
+        success: true, 
+        data: devBarang,
+        usingRealDatabase: false 
+      });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('GET Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch barang' },
@@ -104,55 +92,60 @@ export async function POST(request: NextRequest) {
     }
 
     const newId = `B${Date.now()}`;
+    const currentDate = new Date().toISOString().split('T')[0];
+    
     const newBarang = {
       id: newId,
       nama: body.nama,
-      kategori: body.kategori,
+      kategori: body.kategori || 'lain',
       status: 'tersedia',
-      kuantiti: body.kuantiti,
-      hargaSewa: body.hargaSewa,
-      lokasi: body.lokasi,
+      kuantiti: body.kuantiti || 1,
+      hargaSewa: body.hargaSewa || 0,
+      lokasi: body.lokasi || '',
       noSiri: body.noSiri,
-      tarikhTambah: new Date().toISOString().split('T')[0]
+      tarikhTambah: currentDate
     };
 
-    const { db, isProduction } = await getD1Connection();
+    // 🚀 REAL D1 CONNECTION
+    // @ts-ignore
+    const db = process.env.DB;
     
-    if (isProduction && db) {
+    if (db) {
       console.log('🚀 Saving to REAL D1 database...');
       try {
-        // @ts-ignore - D1 available in production
+        // @ts-ignore
         await db.prepare(
-          `INSERT INTO barang (id, nama, kategori, status, kuantiti, harga_sewa, lokasi, no_siri, tarikh_tambah) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO barang (id, nama, kategori, status, kuantiti, harga_sewa, lokasi, no_siri, tarikh_tambah, created_at) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
         ).bind(
           newId,
-          body.nama,
-          body.kategori,
-          'tersedia',
-          body.kuantiti,
-          body.hargaSewa,
-          body.lokasi,
-          body.noSiri,
-          new Date().toISOString().split('T')[0]
+          newBarang.nama,
+          newBarang.kategori,
+          newBarang.status,
+          newBarang.kuantiti,
+          newBarang.hargaSewa,
+          newBarang.lokasi,
+          newBarang.noSiri,
+          newBarang.tarikhTambah
         ).run();
-      } catch (d1Error) {
-        console.error('D1 Insert failed:', d1Error);
-        // Continue with dev storage fallback
+        console.log('✅ Saved to REAL D1 successfully');
+      } catch (d1Error: any) {
+        console.error('❌ D1 Insert failed:', d1Error.message);
       }
     }
     
     // Always update dev storage (for development and as fallback)
     console.log('💾 Saving to development storage...');
-    devBarang.push(newBarang);
+    devBarang.unshift(newBarang);
 
     console.log('✅ Barang created:', newBarang);
     return NextResponse.json({
       success: true,
       data: newBarang,
-      message: 'Barang berjaya ditambah!'
+      message: 'Barang berjaya ditambah!',
+      usingRealDatabase: !!db
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('POST Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create barang' },
@@ -164,7 +157,7 @@ export async function POST(request: NextRequest) {
 // PUT /api/admin/barang - Update barang
 export async function PUT(request: NextRequest) {
   try {
-    const { id, updates } = await request.json();
+    const { id, ...updates } = await request.json();
     console.log('📦 Updating barang:', id, updates);
     
     if (!id) {
@@ -174,32 +167,37 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { db, isProduction } = await getD1Connection();
+    // 🚀 REAL D1 CONNECTION
+    // @ts-ignore
+    const db = process.env.DB;
     
-    if (isProduction && db) {
+    if (db) {
       console.log('🚀 Updating in REAL D1 database...');
       try {
-        // Build dynamic update query
-        const setClause = Object.keys(updates).map(key => {
-          // Map frontend field names to database column names
-          const dbField = key === 'hargaSewa' ? 'harga_sewa' : 
-                         key === 'noSiri' ? 'no_siri' : 
-                         key === 'tarikhTambah' ? 'tarikh_tambah' : key;
-          return `${dbField} = ?`;
-        }).join(', ');
+        // Map frontend fields to database fields
+        const dbUpdates: any = {};
+        Object.keys(updates).forEach(key => {
+          if (key === 'hargaSewa') dbUpdates.harga_sewa = updates[key];
+          else if (key === 'noSiri') dbUpdates.no_siri = updates[key];
+          else if (key === 'tarikhTambah') dbUpdates.tarikh_tambah = updates[key];
+          else dbUpdates[key] = updates[key];
+        });
+
+        const setClause = Object.keys(dbUpdates).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(dbUpdates);
         
-        const values = Object.values(updates);
-        
-        // @ts-ignore - D1 available in production
-        await db.prepare(
-          `UPDATE barang SET ${setClause} WHERE id = ?`
+        // @ts-ignore
+        const result = await db.prepare(
+          `UPDATE barang SET ${setClause}, updated_at = datetime('now') WHERE id = ?`
         ).bind(...values, id).run();
-      } catch (d1Error) {
-        console.error('D1 Update failed:', d1Error);
+
+        console.log('✅ D1 update result:', result);
+      } catch (d1Error: any) {
+        console.error('❌ D1 Update failed:', d1Error.message);
       }
     }
     
-    // Always update dev storage
+    // Update dev storage
     console.log('💾 Updating in development storage...');
     const index = devBarang.findIndex(item => item.id === id);
     if (index !== -1) {
@@ -209,9 +207,10 @@ export async function PUT(request: NextRequest) {
     console.log('✅ Barang updated:', id);
     return NextResponse.json({
       success: true,
-      message: 'Barang berjaya dikemaskini!'
+      message: 'Barang berjaya dikemaskini!',
+      usingRealDatabase: !!db
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('PUT Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update barang' },
@@ -235,30 +234,37 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { db, isProduction } = await getD1Connection();
+    // 🚀 REAL D1 CONNECTION
+    // @ts-ignore
+    const db = process.env.DB;
     
-    if (isProduction && db) {
+    if (db) {
       console.log('🚀 Deleting from REAL D1 database...');
       try {
-        // @ts-ignore - D1 available in production
-        await db.prepare(
+        // @ts-ignore
+        const result = await db.prepare(
           'DELETE FROM barang WHERE id = ?'
         ).bind(id).run();
-      } catch (d1Error) {
-        console.error('D1 Delete failed:', d1Error);
+        console.log('✅ D1 delete result:', result);
+      } catch (d1Error: any) {
+        console.error('❌ D1 Delete failed:', d1Error.message);
       }
     }
     
-    // Always update dev storage
+    // Update dev storage
     console.log('💾 Deleting from development storage...');
+    const initialLength = devBarang.length;
     devBarang = devBarang.filter(item => item.id !== id);
+    const deleted = initialLength !== devBarang.length;
 
     console.log('✅ Barang deleted:', id);
     return NextResponse.json({
       success: true,
-      message: 'Barang berjaya dipadam!'
+      message: 'Barang berjaya dipadam!',
+      deleted,
+      usingRealDatabase: !!db
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('DELETE Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to delete barang' },

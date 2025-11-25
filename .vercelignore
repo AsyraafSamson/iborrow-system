@@ -1,0 +1,12 @@
+# Cloudflare Pages - Ignore these files during deployment
+.git/
+node_modules/
+.next/cache/
+.wrangler/
+*.log
+.env*
+!.env.example
+.DS_Store
+*.swp
+*.swo
+*~

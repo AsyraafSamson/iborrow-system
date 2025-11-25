@@ -5,8 +5,15 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "next build && npx @cloudflare/next-on-pages",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "d1:setup": "powershell -ExecutionPolicy Bypass -File ./setup-d1.ps1",
+    "d1:init": "wrangler d1 execute iborrow --remote --file=./schema.sql",
+    "d1:query": "wrangler d1 execute iborrow --remote --command",
+    "d1:list": "wrangler d1 list",
+    "pages:dev": "wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat --binding DB=iborrow",
+    "deploy": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name=iborrow-system"
   },
   "dependencies": {
     "next": "^15.5.2",
@@ -14,6 +21,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
