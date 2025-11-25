@@ -1,30 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Cloudflare Pages configuration
+  // Cloudflare Pages - Static Export
+  output: 'export',
+  distDir: 'out',
   
   // Image optimization - disable for Cloudflare Pages
   images: {
     unoptimized: true,
   },
   
-  // ESLint - ignore during build (fix later in development)
+  // ESLint - ignore during build
   eslint: {
     ignoreDuringBuilds: true,
   },
   
-  // TypeScript - ignore during build (fix later in development)
+  // TypeScript - ignore during build
   typescript: {
     ignoreBuildErrors: true,
-  },
-  
-  // Webpack configuration to ignore Cloudflare-specific modules
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push({
-        '@cloudflare/workers-types': 'commonjs @cloudflare/workers-types',
-      });
-    }
-    return config;
   },
 }
 
