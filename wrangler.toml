@@ -1,10 +1,10 @@
-# wrangler.toml - CORRECT FOR CLOUDFLARE PAGES
-name = "iborrow-system"
-compatibility_date = "2024-01-01"
-compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".next"
+# Cloudflare Pages Configuration
+# This file tells Cloudflare this is a PAGES project (not Worker!)
 
-# 🚀 D1 DATABASES - MUST BE AT ROOT LEVEL (NO [env] SECTIONS)
+# Pages-specific settings
+pages_build_output_dir = ".vercel/output/static"
+
+# D1 Database Binding for Pages
 [[d1_databases]]
 binding = "DB"
 database_name = "iborrow"
