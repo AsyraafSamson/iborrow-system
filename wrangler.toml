@@ -1,0 +1,8 @@
+# Cloudflare Pages Configuration
+# DO NOT use for Workers - this is PAGES ONLY
+
+# D1 Database Binding (for Pages)
+[[d1_databases]]
+binding = "DB"
+database_name = "iborrow"
+database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
