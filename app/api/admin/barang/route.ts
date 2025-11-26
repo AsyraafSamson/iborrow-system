@@ -5,14 +5,16 @@ import { NextRequest, NextResponse } from 'next/server';
 let devBarang: any[] = [
   {
     id: 'B001',
-    nama: 'Laptop Dell XPS 13',
-    kategori: 'elektronik',
+    namaBarang: 'Laptop Dell XPS 13',
+    kategori: 'Komputer',
+    kodBarang: 'LAP-DEV-001',
     status: 'tersedia',
-    kuantiti: 5,
-    hargaSewa: 15.00,
+    kuantitiTersedia: 5,
+    kuantitiTotal: 10,
+    hargaPerolehan: 3500.00,
     lokasi: 'Bilik Server A',
-    noSiri: 'LAP-001',
-    tarikhTambah: '2025-01-15'
+    tarikhPerolehan: '2025-01-15',
+    createdBy: 'user_001'
   }
 ];
 
@@ -33,16 +35,23 @@ export async function GET(request: NextRequest) {
           'SELECT * FROM barang ORDER BY created_at DESC'
         ).all();
 
+        // ✅ CORRECT FIELD MAPPING - Match dengan schema.sql
         const barang = result.results.map((item: any) => ({
           id: item.id,
-          nama: item.nama,
+          namaBarang: item.nama_barang,              // ✅ nama_barang dari DB
           kategori: item.kategori,
+          kodBarang: item.kod_barang,                // ✅ kod_barang dari DB
           status: item.status,
-          kuantiti: item.kuantiti,
-          hargaSewa: item.harga_sewa,
+          kuantitiTersedia: item.kuantiti_tersedia,  // ✅ kuantiti_tersedia dari DB
+          kuantitiTotal: item.kuantiti_total,        // ✅ kuantiti_total dari DB
+          hargaPerolehan: item.harga_perolehan,      // ✅ harga_perolehan dari DB
           lokasi: item.lokasi,
-          noSiri: item.no_siri,
-          tarikhTambah: item.tarikh_tambah
+          tarikhPerolehan: item.tarikh_perolehan,    // ✅ tarikh_perolehan dari DB
+          catatan: item.catatan,
+          gambarUrl: item.gambar_url,
+          createdBy: item.created_by,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at
         }));
 
         console.log(`✅ Found ${barang.length} barang in REAL D1`);
@@ -83,57 +92,77 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('📦 Creating new barang:', body);
-    
-    if (!body.nama || !body.noSiri) {
+
+    // ✅ VALIDATE REQUIRED FIELDS - Match dengan schema.sql
+    if (!body.namaBarang || !body.kodBarang) {
       return NextResponse.json(
-        { success: false, error: 'Nama dan No Siri diperlukan' },
+        { success: false, error: 'Nama Barang dan Kod Barang diperlukan' },
         { status: 400 }
       );
     }
 
-    const newId = `B${Date.now()}`;
+    const newId = `brg_${Date.now()}`;
     const currentDate = new Date().toISOString().split('T')[0];
-    
+
+    // ✅ CORRECT FIELD NAMES - Match dengan schema.sql
     const newBarang = {
       id: newId,
-      nama: body.nama,
-      kategori: body.kategori || 'lain',
+      namaBarang: body.namaBarang,
+      kategori: body.kategori || 'Lain-lain',
+      kodBarang: body.kodBarang,                           // ✅ REQUIRED
       status: 'tersedia',
-      kuantiti: body.kuantiti || 1,
-      hargaSewa: body.hargaSewa || 0,
+      kuantitiTersedia: body.kuantitiTersedia || 0,        // ✅ kuantiti_tersedia
+      kuantitiTotal: body.kuantitiTotal || body.kuantitiTersedia || 0, // ✅ REQUIRED
+      hargaPerolehan: body.hargaPerolehan || 0,            // ✅ harga_perolehan
       lokasi: body.lokasi || '',
-      noSiri: body.noSiri,
-      tarikhTambah: currentDate
+      tarikhPerolehan: body.tarikhPerolehan || currentDate, // ✅ tarikh_perolehan
+      catatan: body.catatan || '',
+      gambarUrl: body.gambarUrl || '',
+      createdBy: body.createdBy || 'user_001',             // ✅ REQUIRED - default admin
+      createdAt: currentDate
     };
 
     // 🚀 REAL D1 CONNECTION
     // @ts-ignore
     const db = process.env.DB;
-    
+
     if (db) {
       console.log('🚀 Saving to REAL D1 database...');
       try {
+        // ✅ CORRECT FIELD NAMES IN SQL - Match dengan schema.sql
         // @ts-ignore
         await db.prepare(
-          `INSERT INTO barang (id, nama, kategori, status, kuantiti, harga_sewa, lokasi, no_siri, tarikh_tambah, created_at) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+          `INSERT INTO barang (
+            id, nama_barang, kategori, kod_barang,
+            kuantiti_tersedia, kuantiti_total, lokasi, status,
+            harga_perolehan, tarikh_perolehan, catatan, gambar_url,
+            created_by, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
         ).bind(
-          newId,
-          newBarang.nama,
+          newBarang.id,
+          newBarang.namaBarang,
           newBarang.kategori,
-          newBarang.status,
-          newBarang.kuantiti,
-          newBarang.hargaSewa,
+          newBarang.kodBarang,
+          newBarang.kuantitiTersedia,
+          newBarang.kuantitiTotal,
           newBarang.lokasi,
-          newBarang.noSiri,
-          newBarang.tarikhTambah
+          newBarang.status,
+          newBarang.hargaPerolehan,
+          newBarang.tarikhPerolehan,
+          newBarang.catatan,
+          newBarang.gambarUrl,
+          newBarang.createdBy
         ).run();
         console.log('✅ Saved to REAL D1 successfully');
       } catch (d1Error: any) {
         console.error('❌ D1 Insert failed:', d1Error.message);
+        return NextResponse.json(
+          { success: false, error: `D1 Error: ${d1Error.message}` },
+          { status: 500 }
+        );
       }
     }
-    
+
     // Always update dev storage (for development and as fallback)
     console.log('💾 Saving to development storage...');
     devBarang.unshift(newBarang);
@@ -174,18 +203,23 @@ export async function PUT(request: NextRequest) {
     if (db) {
       console.log('🚀 Updating in REAL D1 database...');
       try {
-        // Map frontend fields to database fields
+        // ✅ Map frontend fields to database fields - Match dengan schema.sql
         const dbUpdates: any = {};
         Object.keys(updates).forEach(key => {
-          if (key === 'hargaSewa') dbUpdates.harga_sewa = updates[key];
-          else if (key === 'noSiri') dbUpdates.no_siri = updates[key];
-          else if (key === 'tarikhTambah') dbUpdates.tarikh_tambah = updates[key];
-          else dbUpdates[key] = updates[key];
+          if (key === 'namaBarang') dbUpdates.nama_barang = updates[key];
+          else if (key === 'kodBarang') dbUpdates.kod_barang = updates[key];
+          else if (key === 'kuantitiTersedia') dbUpdates.kuantiti_tersedia = updates[key];
+          else if (key === 'kuantitiTotal') dbUpdates.kuantiti_total = updates[key];
+          else if (key === 'hargaPerolehan') dbUpdates.harga_perolehan = updates[key];
+          else if (key === 'tarikhPerolehan') dbUpdates.tarikh_perolehan = updates[key];
+          else if (key === 'gambarUrl') dbUpdates.gambar_url = updates[key];
+          else if (key === 'createdBy') dbUpdates.created_by = updates[key];
+          else dbUpdates[key] = updates[key]; // kategori, status, lokasi, catatan - same name
         });
 
         const setClause = Object.keys(dbUpdates).map(key => `${key} = ?`).join(', ');
         const values = Object.values(dbUpdates);
-        
+
         // @ts-ignore
         const result = await db.prepare(
           `UPDATE barang SET ${setClause}, updated_at = datetime('now') WHERE id = ?`
@@ -194,6 +228,10 @@ export async function PUT(request: NextRequest) {
         console.log('✅ D1 update result:', result);
       } catch (d1Error: any) {
         console.error('❌ D1 Update failed:', d1Error.message);
+        return NextResponse.json(
+          { success: false, error: `D1 Error: ${d1Error.message}` },
+          { status: 500 }
+        );
       }
     }
     

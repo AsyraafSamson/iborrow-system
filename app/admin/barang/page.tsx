@@ -6,14 +6,20 @@ import { useState, useEffect } from "react";
 
 interface Barang {
   id: string;
-  nama: string;
+  namaBarang: string;               // ✅ Updated from 'nama'
   kategori: string;
+  kodBarang: string;                // ✅ Updated from 'noSiri'
   status: string;
-  kuantiti: number;
-  hargaSewa: number;
+  kuantitiTersedia: number;         // ✅ Updated from 'kuantiti'
+  kuantitiTotal: number;            // ✅ Added - required field
+  hargaPerolehan: number;           // ✅ Updated from 'hargaSewa'
   lokasi: string;
-  noSiri: string;
-  tarikhTambah: string;
+  tarikhPerolehan?: string;         // ✅ Updated from 'tarikhTambah'
+  catatan?: string;                 // ✅ Added - optional field
+  gambarUrl?: string;               // ✅ Added - optional field
+  createdBy?: string;               // ✅ Added - optional field
+  createdAt?: string;               // ✅ Added - optional field
+  updatedAt?: string;               // ✅ Added - optional field
 }
 
 export default function AdminBarangPage() {
@@ -26,12 +32,16 @@ export default function AdminBarangPage() {
   const [filterStatus, setFilterStatus] = useState("semua");
   const [modalTambah, setModalTambah] = useState(false);
   const [barangBaru, setBarangBaru] = useState({
-    nama: "",
-    kategori: "elektronik",
-    kuantiti: 1,
-    hargaSewa: 0,
+    namaBarang: "",                // ✅ Updated from 'nama'
+    kategori: "Komputer",
+    kodBarang: "",                 // ✅ Updated from 'noSiri'
+    kuantitiTersedia: 1,           // ✅ Updated from 'kuantiti'
+    kuantitiTotal: 1,              // ✅ Added - required field
+    hargaPerolehan: 0,             // ✅ Updated from 'hargaSewa'
     lokasi: "",
-    noSiri: ""
+    tarikhPerolehan: "",           // ✅ Updated from 'tarikhTambah'
+    catatan: "",
+    createdBy: "user_001"          // ✅ Added - default admin
   });
 
   // ✅ FETCH DATA FROM API
@@ -121,9 +131,9 @@ export default function AdminBarangPage() {
       const response = await fetch('/api/admin/barang', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           id: id,
-          updates: { kuantiti: kuantitiBaru } 
+          kuantitiTersedia: kuantitiBaru  // ✅ Updated field name
         })
       });
 
@@ -131,7 +141,7 @@ export default function AdminBarangPage() {
 
       if (data.success) {
         setBarang(barang.map(item =>
-          item.id === id ? { ...item, kuantiti: kuantitiBaru } : item
+          item.id === id ? { ...item, kuantitiTersedia: kuantitiBaru } : item
         ));
         alert(data.message || `Kuantiti barang berjaya dikemaskini!`);
       } else {
@@ -146,8 +156,8 @@ export default function AdminBarangPage() {
 
   // ✅ TAMBAH BARANG DENGAN API
   const handleTambahBarang = async () => {
-    if (!barangBaru.nama || !barangBaru.noSiri) {
-      alert("Sila isi nama barang dan nombor siri!");
+    if (!barangBaru.namaBarang || !barangBaru.kodBarang) {
+      alert("Sila isi nama barang dan kod barang!");
       return;
     }
 
@@ -166,12 +176,16 @@ export default function AdminBarangPage() {
         setBarang([...barang, data.data]);
         setModalTambah(false);
         setBarangBaru({
-          nama: "",
-          kategori: "elektronik",
-          kuantiti: 1,
-          hargaSewa: 0,
+          namaBarang: "",
+          kategori: "Komputer",
+          kodBarang: "",
+          kuantitiTersedia: 1,
+          kuantitiTotal: 1,
+          hargaPerolehan: 0,
           lokasi: "",
-          noSiri: ""
+          tarikhPerolehan: "",
+          catatan: "",
+          createdBy: "user_001"
         });
         alert(data.message || "Barang baru berjaya ditambah!");
       } else {
@@ -248,8 +262,8 @@ export default function AdminBarangPage() {
 
   // Filter barang berdasarkan carian, kategori dan status
   const barangTertapis = barang.filter(item => {
-    const matchesCarian = item.nama.toLowerCase().includes(carian.toLowerCase()) || 
-                         item.noSiri.toLowerCase().includes(carian.toLowerCase());
+    const matchesCarian = item.namaBarang.toLowerCase().includes(carian.toLowerCase()) ||
+                         item.kodBarang.toLowerCase().includes(carian.toLowerCase());
     const matchesKategori = filterKategori === "semua" || item.kategori === filterKategori;
     const matchesStatus = filterStatus === "semua" || item.status === filterStatus;
     return matchesCarian && matchesKategori && matchesStatus;
@@ -415,13 +429,14 @@ export default function AdminBarangPage() {
                   {/* Item Info */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 text-sm">{item.nama}</h3>
-                      <p className="text-gray-600 text-xs mt-1">No Siri: {item.noSiri}</p>
+                      <h3 className="font-semibold text-gray-900 text-sm">{item.namaBarang}</h3>
+                      <p className="text-gray-600 text-xs mt-1">Kod: {item.kodBarang}</p>
                       <p className="text-gray-500 text-xs mt-1">📍 {item.lokasi}</p>
-                      <p className="text-gray-500 text-xs mt-1">Daftar: {item.tarikhTambah}</p>
+                      <p className="text-gray-500 text-xs mt-1">Daftar: {item.tarikhPerolehan || 'N/A'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-green-600">RM {item.hargaSewa}/hari</p>
+                      <p className="text-sm font-bold text-green-600">RM {item.hargaPerolehan.toFixed(2)}</p>
+                      <p className="text-xs text-gray-500">Harga Perolehan</p>
                     </div>
                   </div>
                   
@@ -433,7 +448,7 @@ export default function AdminBarangPage() {
                       {getStatusText(item.status)}
                     </span>
                     <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                      Qty: {item.kuantiti}
+                      Tersedia: {item.kuantitiTersedia}/{item.kuantitiTotal}
                     </span>
                   </div>
 
@@ -454,20 +469,20 @@ export default function AdminBarangPage() {
                     </div>
                     
                     <div className="flex-1">
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Kuantiti</label>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Kuantiti Tersedia</label>
                       <div className="flex gap-1">
-                        <button 
-                          onClick={() => handleUpdateKuantiti(item.id, item.kuantiti - 1)}
-                          disabled={item.kuantiti <= 0}
+                        <button
+                          onClick={() => handleUpdateKuantiti(item.id, item.kuantitiTersedia - 1)}
+                          disabled={item.kuantitiTersedia <= 0}
                           className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs disabled:opacity-50"
                         >
                           -
                         </button>
                         <span className="px-2 py-1 border rounded text-xs w-12 text-center">
-                          {item.kuantiti}
+                          {item.kuantitiTersedia}
                         </span>
-                        <button 
-                          onClick={() => handleUpdateKuantiti(item.id, item.kuantiti + 1)}
+                        <button
+                          onClick={() => handleUpdateKuantiti(item.id, item.kuantitiTersedia + 1)}
                           className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs"
                         >
                           +
@@ -578,19 +593,19 @@ export default function AdminBarangPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nama Barang *</label>
                 <input
                   type="text"
-                  value={barangBaru.nama}
-                  onChange={(e) => setBarangBaru({...barangBaru, nama: e.target.value})}
+                  value={barangBaru.namaBarang}
+                  onChange={(e) => setBarangBaru({...barangBaru, namaBarang: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  placeholder="Contoh: Laptop Dell XPS 13"
+                  placeholder="Contoh: Laptop Dell Latitude 5420"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">No Siri *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kod Barang *</label>
                 <input
                   type="text"
-                  value={barangBaru.noSiri}
-                  onChange={(e) => setBarangBaru({...barangBaru, noSiri: e.target.value})}
+                  value={barangBaru.kodBarang}
+                  onChange={(e) => setBarangBaru({...barangBaru, kodBarang: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   placeholder="Contoh: LAP-001"
                 />
@@ -604,47 +619,65 @@ export default function AdminBarangPage() {
                     onChange={(e) => setBarangBaru({...barangBaru, kategori: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   >
-                    <option value="elektronik">Elektronik</option>
-                    <option value="fotografi">Fotografi</option>
-                    <option value="alat_tulis">Alat Tulis</option>
-                    <option value="buku">Buku</option>
+                    <option value="Komputer">Komputer</option>
+                    <option value="Multimedia">Multimedia</option>
+                    <option value="Rangkaian">Rangkaian</option>
+                    <option value="Lain-lain">Lain-lain</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Kuantiti</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Kuantiti Tersedia *</label>
                   <input
                     type="number"
-                    value={barangBaru.kuantiti}
-                    onChange={(e) => setBarangBaru({...barangBaru, kuantiti: parseInt(e.target.value) || 0})}
+                    value={barangBaru.kuantitiTersedia}
+                    onChange={(e) => {
+                      const nilai = parseInt(e.target.value) || 0;
+                      setBarangBaru({
+                        ...barangBaru,
+                        kuantitiTersedia: nilai,
+                        kuantitiTotal: Math.max(nilai, barangBaru.kuantitiTotal)
+                      });
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    min="1"
+                    min="0"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Harga Sewa (RM)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Kuantiti Total *</label>
                   <input
                     type="number"
-                    step="0.01"
-                    value={barangBaru.hargaSewa}
-                    onChange={(e) => setBarangBaru({...barangBaru, hargaSewa: parseFloat(e.target.value) || 0})}
+                    value={barangBaru.kuantitiTotal}
+                    onChange={(e) => setBarangBaru({...barangBaru, kuantitiTotal: parseInt(e.target.value) || 0})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    min="1"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Harga Perolehan (RM)</label>
                   <input
-                    type="text"
-                    value={barangBaru.lokasi}
-                    onChange={(e) => setBarangBaru({...barangBaru, lokasi: e.target.value})}
+                    type="number"
+                    step="0.01"
+                    value={barangBaru.hargaPerolehan}
+                    onChange={(e) => setBarangBaru({...barangBaru, hargaPerolehan: parseFloat(e.target.value) || 0})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                    placeholder="Contoh: Bilik Server A"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Lokasi</label>
+                <input
+                  type="text"
+                  value={barangBaru.lokasi}
+                  onChange={(e) => setBarangBaru({...barangBaru, lokasi: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="Contoh: Bilik Server A"
+                />
               </div>
             </div>
 
