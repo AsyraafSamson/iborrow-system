@@ -1,8 +1,11 @@
-# Cloudflare Pages Configuration for Next.js
+# Cloudflare Worker with Next.js
 name = "iborrow-system"
-pages_build_output_dir = ".next"
+main = "worker.js"
 compatibility_date = "2025-11-27"
 compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npm run build"
 
 # D1 Database Binding
 [[d1_databases]]
