@@ -1,6 +1,5 @@
-# Cloudflare Workers Configuration
+# Cloudflare Configuration for Next.js
 name = "iborrow-system"
-main = ".vercel/output/static/_worker.js"
 compatibility_date = "2025-11-27"
 compatibility_flags = ["nodejs_compat"]
 
@@ -9,8 +8,3 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "iborrow"
 database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
-
-# Assets directory
-[assets]
-directory = ".vercel/output/static"
-binding = "ASSETS"
