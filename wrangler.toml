@@ -1,5 +1,6 @@
-# Cloudflare Configuration for Next.js
+# Cloudflare Pages Configuration for Next.js
 name = "iborrow-system"
+pages_build_output_dir = ".next"
 compatibility_date = "2025-11-27"
 compatibility_flags = ["nodejs_compat"]
 

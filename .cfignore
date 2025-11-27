@@ -1,0 +1,7 @@
+# Ignore cache files
+.next/cache/
+node_modules/
+.git/
+.wrangler/
+.d1-proxy/
+*.log
