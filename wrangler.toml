@@ -1,11 +1,7 @@
-# Cloudflare Worker with Next.js
+# iBorrow System - Pure Cloudflare Worker
 name = "iborrow-system"
 main = "worker.js"
 compatibility_date = "2025-11-27"
-compatibility_flags = ["nodejs_compat"]
-
-[build]
-command = "npm run build"
 
 # D1 Database Binding
 [[d1_databases]]
