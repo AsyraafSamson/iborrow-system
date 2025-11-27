@@ -1,6 +1,9 @@
 // app/api/admin/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
+// ✅ Edge Runtime for Cloudflare Workers/Pages
+export const runtime = 'edge';
+
 // GET /api/admin/profile - Get admin profile data
 export async function GET(request: NextRequest) {
   try {

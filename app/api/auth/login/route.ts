@@ -1,6 +1,9 @@
 // app/api/auth/login/route.ts - PROPERLY TYPED FOR CLOUDFLARE D1
 import { NextRequest, NextResponse } from 'next/server';
 
+// ✅ Edge Runtime for Cloudflare Workers/Pages
+export const runtime = 'edge';
+
 // Cloudflare D1 Database Types
 interface D1Database {
   prepare(query: string): D1PreparedStatement;

@@ -1,6 +1,9 @@
 // app/api/admin/barang/route.ts - UPDATED FOR REAL D1
 import { NextRequest, NextResponse } from 'next/server';
 
+// ✅ Edge Runtime for Cloudflare Workers/Pages
+export const runtime = 'edge';
+
 // Development storage fallback
 let devBarang: any[] = [
   {
