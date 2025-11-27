@@ -1,8 +1,16 @@
-# Cloudflare Pages Configuration
-# DO NOT use for Workers - this is PAGES ONLY
+# Cloudflare Workers Configuration
+name = "iborrow-system"
+main = ".vercel/output/static/_worker.js"
+compatibility_date = "2025-11-27"
+compatibility_flags = ["nodejs_compat"]
 
-# D1 Database Binding (for Pages)
+# D1 Database Binding
 [[d1_databases]]
 binding = "DB"
 database_name = "iborrow"
 database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
+
+# Assets directory
+[assets]
+directory = ".vercel/output/static"
+binding = "ASSETS"
