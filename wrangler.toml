@@ -1,10 +1,10 @@
-# iBorrow System - Cloudflare Worker with HTML templates
-name = "iborrow-system"
-main = "worker.js"
+# iBorrow System - Cloudflare Pages with Next.js
+name = "iborrow"
+pages_build_output_dir = ".vercel/output/static"
 compatibility_date = "2025-11-27"
 compatibility_flags = ["nodejs_compat"]
 
-# D1 Database Binding
+# D1 Database Binding for Pages
 [[d1_databases]]
 binding = "DB"
 database_name = "iborrow"
