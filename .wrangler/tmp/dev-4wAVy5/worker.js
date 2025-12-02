@@ -1,150 +1,1058 @@
-// iBorrow System - Cloudflare Worker serving Next.js with D1
-export default {
-  async fetch(request, env, ctx) {
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
+// node_modules/unenv/dist/runtime/_internal/utils.mjs
+// @__NO_SIDE_EFFECTS__
+function createNotImplementedError(name) {
+  return new Error(`[unenv] ${name} is not implemented yet!`);
+}
+__name(createNotImplementedError, "createNotImplementedError");
+// @__NO_SIDE_EFFECTS__
+function notImplemented(name) {
+  const fn = /* @__PURE__ */ __name(() => {
+    throw /* @__PURE__ */ createNotImplementedError(name);
+  }, "fn");
+  return Object.assign(fn, { __unenv__: true });
+}
+__name(notImplemented, "notImplemented");
+// @__NO_SIDE_EFFECTS__
+function notImplementedClass(name) {
+  return class {
+    __unenv__ = true;
+    constructor() {
+      throw new Error(`[unenv] ${name} is not implemented yet!`);
+    }
+  };
+}
+__name(notImplementedClass, "notImplementedClass");
+
+// node_modules/unenv/dist/runtime/node/internal/perf_hooks/performance.mjs
+var _timeOrigin = globalThis.performance?.timeOrigin ?? Date.now();
+var _performanceNow = globalThis.performance?.now ? globalThis.performance.now.bind(globalThis.performance) : () => Date.now() - _timeOrigin;
+var nodeTiming = {
+  name: "node",
+  entryType: "node",
+  startTime: 0,
+  duration: 0,
+  nodeStart: 0,
+  v8Start: 0,
+  bootstrapComplete: 0,
+  environment: 0,
+  loopStart: 0,
+  loopExit: 0,
+  idleTime: 0,
+  uvMetricsInfo: {
+    loopCount: 0,
+    events: 0,
+    eventsWaiting: 0
+  },
+  detail: void 0,
+  toJSON() {
+    return this;
+  }
+};
+var PerformanceEntry = class {
+  static {
+    __name(this, "PerformanceEntry");
+  }
+  __unenv__ = true;
+  detail;
+  entryType = "event";
+  name;
+  startTime;
+  constructor(name, options) {
+    this.name = name;
+    this.startTime = options?.startTime || _performanceNow();
+    this.detail = options?.detail;
+  }
+  get duration() {
+    return _performanceNow() - this.startTime;
+  }
+  toJSON() {
+    return {
+      name: this.name,
+      entryType: this.entryType,
+      startTime: this.startTime,
+      duration: this.duration,
+      detail: this.detail
+    };
+  }
+};
+var PerformanceMark = class PerformanceMark2 extends PerformanceEntry {
+  static {
+    __name(this, "PerformanceMark");
+  }
+  entryType = "mark";
+  constructor() {
+    super(...arguments);
+  }
+  get duration() {
+    return 0;
+  }
+};
+var PerformanceMeasure = class extends PerformanceEntry {
+  static {
+    __name(this, "PerformanceMeasure");
+  }
+  entryType = "measure";
+};
+var PerformanceResourceTiming = class extends PerformanceEntry {
+  static {
+    __name(this, "PerformanceResourceTiming");
+  }
+  entryType = "resource";
+  serverTiming = [];
+  connectEnd = 0;
+  connectStart = 0;
+  decodedBodySize = 0;
+  domainLookupEnd = 0;
+  domainLookupStart = 0;
+  encodedBodySize = 0;
+  fetchStart = 0;
+  initiatorType = "";
+  name = "";
+  nextHopProtocol = "";
+  redirectEnd = 0;
+  redirectStart = 0;
+  requestStart = 0;
+  responseEnd = 0;
+  responseStart = 0;
+  secureConnectionStart = 0;
+  startTime = 0;
+  transferSize = 0;
+  workerStart = 0;
+  responseStatus = 0;
+};
+var PerformanceObserverEntryList = class {
+  static {
+    __name(this, "PerformanceObserverEntryList");
+  }
+  __unenv__ = true;
+  getEntries() {
+    return [];
+  }
+  getEntriesByName(_name, _type) {
+    return [];
+  }
+  getEntriesByType(type) {
+    return [];
+  }
+};
+var Performance = class {
+  static {
+    __name(this, "Performance");
+  }
+  __unenv__ = true;
+  timeOrigin = _timeOrigin;
+  eventCounts = /* @__PURE__ */ new Map();
+  _entries = [];
+  _resourceTimingBufferSize = 0;
+  navigation = void 0;
+  timing = void 0;
+  timerify(_fn, _options) {
+    throw createNotImplementedError("Performance.timerify");
+  }
+  get nodeTiming() {
+    return nodeTiming;
+  }
+  eventLoopUtilization() {
+    return {};
+  }
+  markResourceTiming() {
+    return new PerformanceResourceTiming("");
+  }
+  onresourcetimingbufferfull = null;
+  now() {
+    if (this.timeOrigin === _timeOrigin) {
+      return _performanceNow();
+    }
+    return Date.now() - this.timeOrigin;
+  }
+  clearMarks(markName) {
+    this._entries = markName ? this._entries.filter((e) => e.name !== markName) : this._entries.filter((e) => e.entryType !== "mark");
+  }
+  clearMeasures(measureName) {
+    this._entries = measureName ? this._entries.filter((e) => e.name !== measureName) : this._entries.filter((e) => e.entryType !== "measure");
+  }
+  clearResourceTimings() {
+    this._entries = this._entries.filter((e) => e.entryType !== "resource" || e.entryType !== "navigation");
+  }
+  getEntries() {
+    return this._entries;
+  }
+  getEntriesByName(name, type) {
+    return this._entries.filter((e) => e.name === name && (!type || e.entryType === type));
+  }
+  getEntriesByType(type) {
+    return this._entries.filter((e) => e.entryType === type);
+  }
+  mark(name, options) {
+    const entry = new PerformanceMark(name, options);
+    this._entries.push(entry);
+    return entry;
+  }
+  measure(measureName, startOrMeasureOptions, endMark) {
+    let start;
+    let end;
+    if (typeof startOrMeasureOptions === "string") {
+      start = this.getEntriesByName(startOrMeasureOptions, "mark")[0]?.startTime;
+      end = this.getEntriesByName(endMark, "mark")[0]?.startTime;
+    } else {
+      start = Number.parseFloat(startOrMeasureOptions?.start) || this.now();
+      end = Number.parseFloat(startOrMeasureOptions?.end) || this.now();
+    }
+    const entry = new PerformanceMeasure(measureName, {
+      startTime: start,
+      detail: {
+        start,
+        end
+      }
+    });
+    this._entries.push(entry);
+    return entry;
+  }
+  setResourceTimingBufferSize(maxSize) {
+    this._resourceTimingBufferSize = maxSize;
+  }
+  addEventListener(type, listener, options) {
+    throw createNotImplementedError("Performance.addEventListener");
+  }
+  removeEventListener(type, listener, options) {
+    throw createNotImplementedError("Performance.removeEventListener");
+  }
+  dispatchEvent(event) {
+    throw createNotImplementedError("Performance.dispatchEvent");
+  }
+  toJSON() {
+    return this;
+  }
+};
+var PerformanceObserver = class {
+  static {
+    __name(this, "PerformanceObserver");
+  }
+  __unenv__ = true;
+  static supportedEntryTypes = [];
+  _callback = null;
+  constructor(callback) {
+    this._callback = callback;
+  }
+  takeRecords() {
+    return [];
+  }
+  disconnect() {
+    throw createNotImplementedError("PerformanceObserver.disconnect");
+  }
+  observe(options) {
+    throw createNotImplementedError("PerformanceObserver.observe");
+  }
+  bind(fn) {
+    return fn;
+  }
+  runInAsyncScope(fn, thisArg, ...args) {
+    return fn.call(thisArg, ...args);
+  }
+  asyncId() {
+    return 0;
+  }
+  triggerAsyncId() {
+    return 0;
+  }
+  emitDestroy() {
+    return this;
+  }
+};
+var performance = globalThis.performance && "addEventListener" in globalThis.performance ? globalThis.performance : new Performance();
+
+// node_modules/wrangler/node_modules/@cloudflare/unenv-preset/dist/runtime/polyfill/performance.mjs
+globalThis.performance = performance;
+globalThis.Performance = Performance;
+globalThis.PerformanceEntry = PerformanceEntry;
+globalThis.PerformanceMark = PerformanceMark;
+globalThis.PerformanceMeasure = PerformanceMeasure;
+globalThis.PerformanceObserver = PerformanceObserver;
+globalThis.PerformanceObserverEntryList = PerformanceObserverEntryList;
+globalThis.PerformanceResourceTiming = PerformanceResourceTiming;
+
+// node_modules/unenv/dist/runtime/node/console.mjs
+import { Writable } from "node:stream";
+
+// node_modules/unenv/dist/runtime/mock/noop.mjs
+var noop_default = Object.assign(() => {
+}, { __unenv__: true });
+
+// node_modules/unenv/dist/runtime/node/console.mjs
+var _console = globalThis.console;
+var _ignoreErrors = true;
+var _stderr = new Writable();
+var _stdout = new Writable();
+var log = _console?.log ?? noop_default;
+var info = _console?.info ?? log;
+var trace = _console?.trace ?? info;
+var debug = _console?.debug ?? log;
+var table = _console?.table ?? log;
+var error = _console?.error ?? log;
+var warn = _console?.warn ?? error;
+var createTask = _console?.createTask ?? /* @__PURE__ */ notImplemented("console.createTask");
+var clear = _console?.clear ?? noop_default;
+var count = _console?.count ?? noop_default;
+var countReset = _console?.countReset ?? noop_default;
+var dir = _console?.dir ?? noop_default;
+var dirxml = _console?.dirxml ?? noop_default;
+var group = _console?.group ?? noop_default;
+var groupEnd = _console?.groupEnd ?? noop_default;
+var groupCollapsed = _console?.groupCollapsed ?? noop_default;
+var profile = _console?.profile ?? noop_default;
+var profileEnd = _console?.profileEnd ?? noop_default;
+var time = _console?.time ?? noop_default;
+var timeEnd = _console?.timeEnd ?? noop_default;
+var timeLog = _console?.timeLog ?? noop_default;
+var timeStamp = _console?.timeStamp ?? noop_default;
+var Console = _console?.Console ?? /* @__PURE__ */ notImplementedClass("console.Console");
+var _times = /* @__PURE__ */ new Map();
+var _stdoutErrorHandler = noop_default;
+var _stderrErrorHandler = noop_default;
+
+// node_modules/wrangler/node_modules/@cloudflare/unenv-preset/dist/runtime/node/console.mjs
+var workerdConsole = globalThis["console"];
+var {
+  assert,
+  clear: clear2,
+  // @ts-expect-error undocumented public API
+  context,
+  count: count2,
+  countReset: countReset2,
+  // @ts-expect-error undocumented public API
+  createTask: createTask2,
+  debug: debug2,
+  dir: dir2,
+  dirxml: dirxml2,
+  error: error2,
+  group: group2,
+  groupCollapsed: groupCollapsed2,
+  groupEnd: groupEnd2,
+  info: info2,
+  log: log2,
+  profile: profile2,
+  profileEnd: profileEnd2,
+  table: table2,
+  time: time2,
+  timeEnd: timeEnd2,
+  timeLog: timeLog2,
+  timeStamp: timeStamp2,
+  trace: trace2,
+  warn: warn2
+} = workerdConsole;
+Object.assign(workerdConsole, {
+  Console,
+  _ignoreErrors,
+  _stderr,
+  _stderrErrorHandler,
+  _stdout,
+  _stdoutErrorHandler,
+  _times
+});
+var console_default = workerdConsole;
+
+// node_modules/wrangler/_virtual_unenv_global_polyfill-@cloudflare-unenv-preset-node-console
+globalThis.console = console_default;
+
+// node_modules/unenv/dist/runtime/node/internal/process/hrtime.mjs
+var hrtime = /* @__PURE__ */ Object.assign(/* @__PURE__ */ __name(function hrtime2(startTime) {
+  const now = Date.now();
+  const seconds = Math.trunc(now / 1e3);
+  const nanos = now % 1e3 * 1e6;
+  if (startTime) {
+    let diffSeconds = seconds - startTime[0];
+    let diffNanos = nanos - startTime[0];
+    if (diffNanos < 0) {
+      diffSeconds = diffSeconds - 1;
+      diffNanos = 1e9 + diffNanos;
+    }
+    return [diffSeconds, diffNanos];
+  }
+  return [seconds, nanos];
+}, "hrtime"), { bigint: /* @__PURE__ */ __name(function bigint() {
+  return BigInt(Date.now() * 1e6);
+}, "bigint") });
+
+// node_modules/unenv/dist/runtime/node/internal/process/process.mjs
+import { EventEmitter } from "node:events";
+
+// node_modules/unenv/dist/runtime/node/internal/tty/read-stream.mjs
+var ReadStream = class {
+  static {
+    __name(this, "ReadStream");
+  }
+  fd;
+  isRaw = false;
+  isTTY = false;
+  constructor(fd) {
+    this.fd = fd;
+  }
+  setRawMode(mode) {
+    this.isRaw = mode;
+    return this;
+  }
+};
+
+// node_modules/unenv/dist/runtime/node/internal/tty/write-stream.mjs
+var WriteStream = class {
+  static {
+    __name(this, "WriteStream");
+  }
+  fd;
+  columns = 80;
+  rows = 24;
+  isTTY = false;
+  constructor(fd) {
+    this.fd = fd;
+  }
+  clearLine(dir3, callback) {
+    callback && callback();
+    return false;
+  }
+  clearScreenDown(callback) {
+    callback && callback();
+    return false;
+  }
+  cursorTo(x, y, callback) {
+    callback && typeof callback === "function" && callback();
+    return false;
+  }
+  moveCursor(dx, dy, callback) {
+    callback && callback();
+    return false;
+  }
+  getColorDepth(env2) {
+    return 1;
+  }
+  hasColors(count3, env2) {
+    return false;
+  }
+  getWindowSize() {
+    return [this.columns, this.rows];
+  }
+  write(str, encoding, cb) {
+    if (str instanceof Uint8Array) {
+      str = new TextDecoder().decode(str);
+    }
+    try {
+      console.log(str);
+    } catch {
+    }
+    cb && typeof cb === "function" && cb();
+    return false;
+  }
+};
+
+// node_modules/unenv/dist/runtime/node/internal/process/node-version.mjs
+var NODE_VERSION = "22.14.0";
+
+// node_modules/unenv/dist/runtime/node/internal/process/process.mjs
+var Process = class _Process extends EventEmitter {
+  static {
+    __name(this, "Process");
+  }
+  env;
+  hrtime;
+  nextTick;
+  constructor(impl) {
+    super();
+    this.env = impl.env;
+    this.hrtime = impl.hrtime;
+    this.nextTick = impl.nextTick;
+    for (const prop of [...Object.getOwnPropertyNames(_Process.prototype), ...Object.getOwnPropertyNames(EventEmitter.prototype)]) {
+      const value = this[prop];
+      if (typeof value === "function") {
+        this[prop] = value.bind(this);
+      }
+    }
+  }
+  // --- event emitter ---
+  emitWarning(warning, type, code) {
+    console.warn(`${code ? `[${code}] ` : ""}${type ? `${type}: ` : ""}${warning}`);
+  }
+  emit(...args) {
+    return super.emit(...args);
+  }
+  listeners(eventName) {
+    return super.listeners(eventName);
+  }
+  // --- stdio (lazy initializers) ---
+  #stdin;
+  #stdout;
+  #stderr;
+  get stdin() {
+    return this.#stdin ??= new ReadStream(0);
+  }
+  get stdout() {
+    return this.#stdout ??= new WriteStream(1);
+  }
+  get stderr() {
+    return this.#stderr ??= new WriteStream(2);
+  }
+  // --- cwd ---
+  #cwd = "/";
+  chdir(cwd2) {
+    this.#cwd = cwd2;
+  }
+  cwd() {
+    return this.#cwd;
+  }
+  // --- dummy props and getters ---
+  arch = "";
+  platform = "";
+  argv = [];
+  argv0 = "";
+  execArgv = [];
+  execPath = "";
+  title = "";
+  pid = 200;
+  ppid = 100;
+  get version() {
+    return `v${NODE_VERSION}`;
+  }
+  get versions() {
+    return { node: NODE_VERSION };
+  }
+  get allowedNodeEnvironmentFlags() {
+    return /* @__PURE__ */ new Set();
+  }
+  get sourceMapsEnabled() {
+    return false;
+  }
+  get debugPort() {
+    return 0;
+  }
+  get throwDeprecation() {
+    return false;
+  }
+  get traceDeprecation() {
+    return false;
+  }
+  get features() {
+    return {};
+  }
+  get release() {
+    return {};
+  }
+  get connected() {
+    return false;
+  }
+  get config() {
+    return {};
+  }
+  get moduleLoadList() {
+    return [];
+  }
+  constrainedMemory() {
+    return 0;
+  }
+  availableMemory() {
+    return 0;
+  }
+  uptime() {
+    return 0;
+  }
+  resourceUsage() {
+    return {};
+  }
+  // --- noop methods ---
+  ref() {
+  }
+  unref() {
+  }
+  // --- unimplemented methods ---
+  umask() {
+    throw createNotImplementedError("process.umask");
+  }
+  getBuiltinModule() {
+    return void 0;
+  }
+  getActiveResourcesInfo() {
+    throw createNotImplementedError("process.getActiveResourcesInfo");
+  }
+  exit() {
+    throw createNotImplementedError("process.exit");
+  }
+  reallyExit() {
+    throw createNotImplementedError("process.reallyExit");
+  }
+  kill() {
+    throw createNotImplementedError("process.kill");
+  }
+  abort() {
+    throw createNotImplementedError("process.abort");
+  }
+  dlopen() {
+    throw createNotImplementedError("process.dlopen");
+  }
+  setSourceMapsEnabled() {
+    throw createNotImplementedError("process.setSourceMapsEnabled");
+  }
+  loadEnvFile() {
+    throw createNotImplementedError("process.loadEnvFile");
+  }
+  disconnect() {
+    throw createNotImplementedError("process.disconnect");
+  }
+  cpuUsage() {
+    throw createNotImplementedError("process.cpuUsage");
+  }
+  setUncaughtExceptionCaptureCallback() {
+    throw createNotImplementedError("process.setUncaughtExceptionCaptureCallback");
+  }
+  hasUncaughtExceptionCaptureCallback() {
+    throw createNotImplementedError("process.hasUncaughtExceptionCaptureCallback");
+  }
+  initgroups() {
+    throw createNotImplementedError("process.initgroups");
+  }
+  openStdin() {
+    throw createNotImplementedError("process.openStdin");
+  }
+  assert() {
+    throw createNotImplementedError("process.assert");
+  }
+  binding() {
+    throw createNotImplementedError("process.binding");
+  }
+  // --- attached interfaces ---
+  permission = { has: /* @__PURE__ */ notImplemented("process.permission.has") };
+  report = {
+    directory: "",
+    filename: "",
+    signal: "SIGUSR2",
+    compact: false,
+    reportOnFatalError: false,
+    reportOnSignal: false,
+    reportOnUncaughtException: false,
+    getReport: /* @__PURE__ */ notImplemented("process.report.getReport"),
+    writeReport: /* @__PURE__ */ notImplemented("process.report.writeReport")
+  };
+  finalization = {
+    register: /* @__PURE__ */ notImplemented("process.finalization.register"),
+    unregister: /* @__PURE__ */ notImplemented("process.finalization.unregister"),
+    registerBeforeExit: /* @__PURE__ */ notImplemented("process.finalization.registerBeforeExit")
+  };
+  memoryUsage = Object.assign(() => ({
+    arrayBuffers: 0,
+    rss: 0,
+    external: 0,
+    heapTotal: 0,
+    heapUsed: 0
+  }), { rss: /* @__PURE__ */ __name(() => 0, "rss") });
+  // --- undefined props ---
+  mainModule = void 0;
+  domain = void 0;
+  // optional
+  send = void 0;
+  exitCode = void 0;
+  channel = void 0;
+  getegid = void 0;
+  geteuid = void 0;
+  getgid = void 0;
+  getgroups = void 0;
+  getuid = void 0;
+  setegid = void 0;
+  seteuid = void 0;
+  setgid = void 0;
+  setgroups = void 0;
+  setuid = void 0;
+  // internals
+  _events = void 0;
+  _eventsCount = void 0;
+  _exiting = void 0;
+  _maxListeners = void 0;
+  _debugEnd = void 0;
+  _debugProcess = void 0;
+  _fatalException = void 0;
+  _getActiveHandles = void 0;
+  _getActiveRequests = void 0;
+  _kill = void 0;
+  _preload_modules = void 0;
+  _rawDebug = void 0;
+  _startProfilerIdleNotifier = void 0;
+  _stopProfilerIdleNotifier = void 0;
+  _tickCallback = void 0;
+  _disconnect = void 0;
+  _handleQueue = void 0;
+  _pendingMessage = void 0;
+  _channel = void 0;
+  _send = void 0;
+  _linkedBinding = void 0;
+};
+
+// node_modules/wrangler/node_modules/@cloudflare/unenv-preset/dist/runtime/node/process.mjs
+var globalProcess = globalThis["process"];
+var getBuiltinModule = globalProcess.getBuiltinModule;
+var workerdProcess = getBuiltinModule("node:process");
+var isWorkerdProcessV2 = globalThis.Cloudflare.compatibilityFlags.enable_nodejs_process_v2;
+var unenvProcess = new Process({
+  env: globalProcess.env,
+  // `hrtime` is only available from workerd process v2
+  hrtime: isWorkerdProcessV2 ? workerdProcess.hrtime : hrtime,
+  // `nextTick` is available from workerd process v1
+  nextTick: workerdProcess.nextTick
+});
+var { exit, features, platform } = workerdProcess;
+var {
+  // Always implemented by workerd
+  env,
+  // Only implemented in workerd v2
+  hrtime: hrtime3,
+  // Always implemented by workerd
+  nextTick
+} = unenvProcess;
+var {
+  _channel,
+  _disconnect,
+  _events,
+  _eventsCount,
+  _handleQueue,
+  _maxListeners,
+  _pendingMessage,
+  _send,
+  assert: assert2,
+  disconnect,
+  mainModule
+} = unenvProcess;
+var {
+  // @ts-expect-error `_debugEnd` is missing typings
+  _debugEnd,
+  // @ts-expect-error `_debugProcess` is missing typings
+  _debugProcess,
+  // @ts-expect-error `_exiting` is missing typings
+  _exiting,
+  // @ts-expect-error `_fatalException` is missing typings
+  _fatalException,
+  // @ts-expect-error `_getActiveHandles` is missing typings
+  _getActiveHandles,
+  // @ts-expect-error `_getActiveRequests` is missing typings
+  _getActiveRequests,
+  // @ts-expect-error `_kill` is missing typings
+  _kill,
+  // @ts-expect-error `_linkedBinding` is missing typings
+  _linkedBinding,
+  // @ts-expect-error `_preload_modules` is missing typings
+  _preload_modules,
+  // @ts-expect-error `_rawDebug` is missing typings
+  _rawDebug,
+  // @ts-expect-error `_startProfilerIdleNotifier` is missing typings
+  _startProfilerIdleNotifier,
+  // @ts-expect-error `_stopProfilerIdleNotifier` is missing typings
+  _stopProfilerIdleNotifier,
+  // @ts-expect-error `_tickCallback` is missing typings
+  _tickCallback,
+  abort,
+  addListener,
+  allowedNodeEnvironmentFlags,
+  arch,
+  argv,
+  argv0,
+  availableMemory,
+  // @ts-expect-error `binding` is missing typings
+  binding,
+  channel,
+  chdir,
+  config,
+  connected,
+  constrainedMemory,
+  cpuUsage,
+  cwd,
+  debugPort,
+  dlopen,
+  // @ts-expect-error `domain` is missing typings
+  domain,
+  emit,
+  emitWarning,
+  eventNames,
+  execArgv,
+  execPath,
+  exitCode,
+  finalization,
+  getActiveResourcesInfo,
+  getegid,
+  geteuid,
+  getgid,
+  getgroups,
+  getMaxListeners,
+  getuid,
+  hasUncaughtExceptionCaptureCallback,
+  // @ts-expect-error `initgroups` is missing typings
+  initgroups,
+  kill,
+  listenerCount,
+  listeners,
+  loadEnvFile,
+  memoryUsage,
+  // @ts-expect-error `moduleLoadList` is missing typings
+  moduleLoadList,
+  off,
+  on,
+  once,
+  // @ts-expect-error `openStdin` is missing typings
+  openStdin,
+  permission,
+  pid,
+  ppid,
+  prependListener,
+  prependOnceListener,
+  rawListeners,
+  // @ts-expect-error `reallyExit` is missing typings
+  reallyExit,
+  ref,
+  release,
+  removeAllListeners,
+  removeListener,
+  report,
+  resourceUsage,
+  send,
+  setegid,
+  seteuid,
+  setgid,
+  setgroups,
+  setMaxListeners,
+  setSourceMapsEnabled,
+  setuid,
+  setUncaughtExceptionCaptureCallback,
+  sourceMapsEnabled,
+  stderr,
+  stdin,
+  stdout,
+  throwDeprecation,
+  title,
+  traceDeprecation,
+  umask,
+  unref,
+  uptime,
+  version,
+  versions
+} = isWorkerdProcessV2 ? workerdProcess : unenvProcess;
+var _process = {
+  abort,
+  addListener,
+  allowedNodeEnvironmentFlags,
+  hasUncaughtExceptionCaptureCallback,
+  setUncaughtExceptionCaptureCallback,
+  loadEnvFile,
+  sourceMapsEnabled,
+  arch,
+  argv,
+  argv0,
+  chdir,
+  config,
+  connected,
+  constrainedMemory,
+  availableMemory,
+  cpuUsage,
+  cwd,
+  debugPort,
+  dlopen,
+  disconnect,
+  emit,
+  emitWarning,
+  env,
+  eventNames,
+  execArgv,
+  execPath,
+  exit,
+  finalization,
+  features,
+  getBuiltinModule,
+  getActiveResourcesInfo,
+  getMaxListeners,
+  hrtime: hrtime3,
+  kill,
+  listeners,
+  listenerCount,
+  memoryUsage,
+  nextTick,
+  on,
+  off,
+  once,
+  pid,
+  platform,
+  ppid,
+  prependListener,
+  prependOnceListener,
+  rawListeners,
+  release,
+  removeAllListeners,
+  removeListener,
+  report,
+  resourceUsage,
+  setMaxListeners,
+  setSourceMapsEnabled,
+  stderr,
+  stdin,
+  stdout,
+  title,
+  throwDeprecation,
+  traceDeprecation,
+  umask,
+  uptime,
+  version,
+  versions,
+  // @ts-expect-error old API
+  domain,
+  initgroups,
+  moduleLoadList,
+  reallyExit,
+  openStdin,
+  assert: assert2,
+  binding,
+  send,
+  exitCode,
+  channel,
+  getegid,
+  geteuid,
+  getgid,
+  getgroups,
+  getuid,
+  setegid,
+  seteuid,
+  setgid,
+  setgroups,
+  setuid,
+  permission,
+  mainModule,
+  _events,
+  _eventsCount,
+  _exiting,
+  _maxListeners,
+  _debugEnd,
+  _debugProcess,
+  _fatalException,
+  _getActiveHandles,
+  _getActiveRequests,
+  _kill,
+  _preload_modules,
+  _rawDebug,
+  _startProfilerIdleNotifier,
+  _stopProfilerIdleNotifier,
+  _tickCallback,
+  _disconnect,
+  _handleQueue,
+  _pendingMessage,
+  _channel,
+  _send,
+  _linkedBinding
+};
+var process_default = _process;
+
+// node_modules/wrangler/_virtual_unenv_global_polyfill-@cloudflare-unenv-preset-node-process
+globalThis.process = process_default;
+
+// worker.js
+var worker_default = {
+  async fetch(request, env2, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
-
-    // CORS headers
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type"
     };
-
-    // Handle OPTIONS preflight
-    if (request.method === 'OPTIONS') {
+    if (request.method === "OPTIONS") {
       return new Response(null, { headers: corsHeaders });
     }
-
     try {
-      // API Routes - Handle with D1
-      if (path.startsWith('/api/')) {
-        return await handleAPI(path, request, env, corsHeaders);
+      if (path.startsWith("/api/")) {
+        return await handleAPI(path, request, env2, corsHeaders);
       }
-
-      // PRIORITY 1: Serve Next.js static assets (_next/static/, etc)
-      if (path.startsWith('/_next/') || path.startsWith('/static/') || 
-          path.endsWith('.js') || path.endsWith('.css') || 
-          path.endsWith('.json') || path.endsWith('.woff2')) {
-        if (env.ASSETS) {
-          const assetResponse = await env.ASSETS.fetch(request);
+      if (path.startsWith("/_next/") || path.startsWith("/static/") || path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".json") || path.endsWith(".woff2")) {
+        if (env2.ASSETS) {
+          const assetResponse = await env2.ASSETS.fetch(request);
           if (assetResponse && assetResponse.status !== 404) {
             return assetResponse;
           }
         }
       }
-
-      // PRIORITY 2: Try to serve from ASSETS binding for any other path
-      if (env.ASSETS) {
-        const assetResponse = await env.ASSETS.fetch(request);
+      if (env2.ASSETS) {
+        const assetResponse = await env2.ASSETS.fetch(request);
         if (assetResponse && assetResponse.status !== 404) {
           return assetResponse;
         }
       }
-
-      // Try Next.js HTML pages
       const htmlPaths = {
-        '/': '/index.html',
-        '/login': '/login.html',
-        '/user/dashboard': '/user/dashboard.html',
-        '/user/barang': '/user/barang.html',
-        '/user/profile': '/user/profile.html',
-        '/user/tempahan': '/user/tempahan.html',
-        '/user/sejarah': '/user/sejarah.html',
-        '/admin/dashboard': '/admin/dashboard.html',
-        '/admin/barang': '/admin/barang.html',
-        '/admin/pengguna': '/admin/pengguna.html',
-        '/admin/laporan': '/admin/laporan.html',
-        '/admin/profile': '/admin/profile.html',
-        '/staff-ict/dashboard': '/staff-ict/dashboard.html',
-        '/staff-ict/barang': '/staff-ict/barang.html',
-        '/staff-ict/kelulusan': '/staff-ict/kelulusan.html',
+        "/": "/index.html",
+        "/login": "/login.html",
+        "/user/dashboard": "/user/dashboard.html",
+        "/user/barang": "/user/barang.html",
+        "/user/profile": "/user/profile.html",
+        "/user/tempahan": "/user/tempahan.html",
+        "/user/sejarah": "/user/sejarah.html",
+        "/admin/dashboard": "/admin/dashboard.html",
+        "/admin/barang": "/admin/barang.html",
+        "/admin/pengguna": "/admin/pengguna.html",
+        "/admin/laporan": "/admin/laporan.html",
+        "/admin/profile": "/admin/profile.html",
+        "/staff-ict/dashboard": "/staff-ict/dashboard.html",
+        "/staff-ict/barang": "/staff-ict/barang.html",
+        "/staff-ict/kelulusan": "/staff-ict/kelulusan.html"
       };
-
       const htmlPath = htmlPaths[path];
-      if (htmlPath && env.ASSETS) {
+      if (htmlPath && env2.ASSETS) {
         const htmlUrl = new URL(htmlPath, request.url);
-        const htmlResponse = await env.ASSETS.fetch(new Request(htmlUrl, request));
-        if (htmlResponse && htmlResponse.status !== 404) {
-          return htmlResponse;
+        const htmlResponse2 = await env2.ASSETS.fetch(new Request(htmlUrl, request));
+        if (htmlResponse2 && htmlResponse2.status !== 404) {
+          return htmlResponse2;
         }
       }
-
-      // Fallback to custom HTML for paths not in Next.js build
       return await handlePage(path, corsHeaders);
-
-    } catch (error) {
-      return jsonResponse({ 
-        success: false, 
-        error: 'Internal server error',
-        message: error.message 
+    } catch (error3) {
+      return jsonResponse({
+        success: false,
+        error: "Internal server error",
+        message: error3.message
       }, 500, corsHeaders);
     }
   }
 };
-
-// ============================================
-// API HANDLERS
-// ============================================
-
-async function handleAPI(path, request, env, corsHeaders) {
-  const db = env.DB;
-
-  // POST /api/auth/login
-  if (path === '/api/auth/login' && request.method === 'POST') {
+async function handleAPI(path, request, env2, corsHeaders) {
+  const db = env2.DB;
+  if (path === "/api/auth/login" && request.method === "POST") {
     const { email, password } = await request.json();
-
     if (!email || !password) {
-      return jsonResponse({ 
-        success: false, 
-        error: 'Email dan password diperlukan' 
+      return jsonResponse({
+        success: false,
+        error: "Email dan password diperlukan"
       }, 400, corsHeaders);
     }
-
-    // Query D1 database
     const result = await db.prepare(
-      'SELECT * FROM users WHERE email = ? AND password_hash = ?'
+      "SELECT * FROM users WHERE email = ? AND password_hash = ?"
     ).bind(email, password).first();
-
     if (!result) {
-      return jsonResponse({ 
-        success: false, 
-        error: 'Email atau password salah' 
+      return jsonResponse({
+        success: false,
+        error: "Email atau password salah"
       }, 401, corsHeaders);
     }
-
-    // Update last login
     await db.prepare(
       "UPDATE users SET last_login = datetime('now') WHERE id = ?"
     ).bind(result.id).run();
-
-    // Remove password from response
     const { password_hash, ...user } = result;
-
     return jsonResponse({
       success: true,
       user,
       redirectTo: getRedirectPath(user.peranan),
       usingRealDatabase: true,
-      message: 'Login berjaya (D1 Database)'
+      message: "Login berjaya (D1 Database)"
     }, 200, corsHeaders);
   }
-
-  // GET /api/user/dashboard
-  if (path === '/api/user/dashboard' && request.method === 'GET') {
-    const userId = 'user_003'; // TODO: Get from session
+  if (path === "/api/user/dashboard" && request.method === "GET") {
+    const userId = "user_003";
     const stats = await db.prepare(`
       SELECT 
         (SELECT COUNT(*) FROM tempahan WHERE userId = ?) as totalTempahan,
         (SELECT COUNT(*) FROM tempahan WHERE userId = ? AND status = 'Aktif') as tempahanAktif,
         (SELECT COUNT(*) FROM barang WHERE status = 'Tersedia') as barangTersedia
     `).bind(userId, userId).first();
-
     return jsonResponse({ success: true, data: stats }, 200, corsHeaders);
   }
-
-  // GET /api/admin/dashboard
-  if (path === '/api/admin/dashboard' && request.method === 'GET') {
+  if (path === "/api/admin/dashboard" && request.method === "GET") {
     const stats = await db.prepare(`
       SELECT 
         (SELECT COUNT(*) FROM users) as totalUsers,
@@ -153,12 +1061,9 @@ async function handleAPI(path, request, env, corsHeaders) {
         (SELECT COUNT(*) FROM tempahan WHERE status = 'Pending') as tempahanPending,
         (SELECT SUM(kuantitiTersedia) FROM barang) as totalKuantiti
     `).first();
-
     return jsonResponse({ success: true, data: stats }, 200, corsHeaders);
   }
-
-  // GET /api/staff-ict/dashboard
-  if (path === '/api/staff-ict/dashboard' && request.method === 'GET') {
+  if (path === "/api/staff-ict/dashboard" && request.method === "GET") {
     const stats = await db.prepare(`
       SELECT 
         (SELECT COUNT(*) FROM tempahan WHERE status = 'Pending') as perluKelulusan,
@@ -166,44 +1071,30 @@ async function handleAPI(path, request, env, corsHeaders) {
         (SELECT COUNT(*) FROM tempahan WHERE status = 'Ditolak') as ditolak,
         (SELECT COUNT(*) FROM barang) as totalBarang
     `).first();
-
     return jsonResponse({ success: true, data: stats }, 200, corsHeaders);
   }
-
-  // GET /api/user/barang - List all available items
-  if (path === '/api/user/barang' && request.method === 'GET') {
+  if (path === "/api/user/barang" && request.method === "GET") {
     const barang = await db.prepare(
       'SELECT * FROM barang WHERE status = "Tersedia" ORDER BY createdAt DESC'
     ).all();
-
-    return jsonResponse({ 
-      success: true, 
-      barang: barang.results 
+    return jsonResponse({
+      success: true,
+      barang: barang.results
     }, 200, corsHeaders);
   }
-
-  // ============================================
-  // ADMIN BARANG API - Full CRUD
-  // ============================================
-  
-  if (path === '/api/admin/barang') {
-    // GET - List all barang
-    if (request.method === 'GET') {
+  if (path === "/api/admin/barang") {
+    if (request.method === "GET") {
       const barang = await db.prepare(
-        'SELECT * FROM barang ORDER BY createdAt DESC'
+        "SELECT * FROM barang ORDER BY createdAt DESC"
       ).all();
-
-      return jsonResponse({ 
-        success: true, 
-        barang: barang.results 
+      return jsonResponse({
+        success: true,
+        barang: barang.results
       }, 200, corsHeaders);
     }
-
-    // POST - Create new barang
-    if (request.method === 'POST') {
+    if (request.method === "POST") {
       const body = await request.json();
-      const id = 'brg_' + Date.now();
-
+      const id = "brg_" + Date.now();
       await db.prepare(`
         INSERT INTO barang (id, namaBarang, kategori, kodBarang, kuantitiTersedia, 
           kuantitiTotal, lokasi, status, hargaPerolehan, tarikhPerolehan, catatan, createdBy)
@@ -216,27 +1107,22 @@ async function handleAPI(path, request, env, corsHeaders) {
         body.kuantitiTersedia || body.kuantitiTotal,
         body.kuantitiTotal,
         body.lokasi,
-        'Tersedia',
+        "Tersedia",
         body.hargaPerolehan || 0,
-        body.tarikhPerolehan || new Date().toISOString().split('T')[0],
-        body.catatan || '',
-        body.createdBy || 'user_001'
+        body.tarikhPerolehan || (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+        body.catatan || "",
+        body.createdBy || "user_001"
       ).run();
-
-      return jsonResponse({ 
-        success: true, 
-        message: 'Barang berjaya ditambah',
+      return jsonResponse({
+        success: true,
+        message: "Barang berjaya ditambah",
         data: { id }
       }, 200, corsHeaders);
     }
-
-    // PUT - Update barang
-    if (request.method === 'PUT') {
+    if (request.method === "PUT") {
       try {
         const body = await request.json();
-        console.log('PUT body received:', JSON.stringify(body));
-
-        // Full update with all fields
+        console.log("PUT body received:", JSON.stringify(body));
         if (body.namaBarang) {
           await db.prepare(`
             UPDATE barang SET 
@@ -255,97 +1141,73 @@ async function handleAPI(path, request, env, corsHeaders) {
             body.kategori,
             body.kodBarang,
             body.kuantitiTotal || 1,
-            body.kuantitiTersedia !== undefined ? body.kuantitiTersedia : 1,
-            body.status || 'Tersedia',
+            body.kuantitiTersedia !== void 0 ? body.kuantitiTersedia : 1,
+            body.status || "Tersedia",
             body.lokasi,
-            body.deskripsi || body.nota || '',
+            body.deskripsi || body.nota || "",
             body.id
           ).run();
-        }
-        // Quick status update only
-        else if (body.status && !body.namaBarang) {
+        } else if (body.status && !body.namaBarang) {
           await db.prepare(
             'UPDATE barang SET status = ?, updatedAt = datetime("now") WHERE id = ?'
           ).bind(body.status, body.id).run();
-        }
-        // Quick quantity update only
-        else if (body.kuantitiTersedia !== undefined && !body.namaBarang) {
+        } else if (body.kuantitiTersedia !== void 0 && !body.namaBarang) {
           await db.prepare(
             'UPDATE barang SET kuantitiTersedia = ?, updatedAt = datetime("now") WHERE id = ?'
           ).bind(body.kuantitiTersedia, body.id).run();
         }
-
-        return jsonResponse({ 
-          success: true, 
-          message: 'Barang berjaya dikemaskini'
+        return jsonResponse({
+          success: true,
+          message: "Barang berjaya dikemaskini"
         }, 200, corsHeaders);
-      } catch (error) {
-        console.error('PUT error:', error);
-        return jsonResponse({ 
-          success: false, 
-          error: error.message || 'Gagal kemaskini barang'
+      } catch (error3) {
+        console.error("PUT error:", error3);
+        return jsonResponse({
+          success: false,
+          error: error3.message || "Gagal kemaskini barang"
         }, 500, corsHeaders);
       }
     }
-
-    // DELETE - Remove barang (single or bulk)
-    if (request.method === 'DELETE') {
+    if (request.method === "DELETE") {
       const body = await request.json();
-      
-      // Bulk delete
       if (body.ids && Array.isArray(body.ids)) {
-        const placeholders = body.ids.map(() => '?').join(',');
+        const placeholders = body.ids.map(() => "?").join(",");
         await db.prepare(
           `DELETE FROM barang WHERE id IN (${placeholders})`
         ).bind(...body.ids).run();
-
-        return jsonResponse({ 
-          success: true, 
+        return jsonResponse({
+          success: true,
           message: `${body.ids.length} barang berjaya dipadam`
         }, 200, corsHeaders);
       }
-      
-      // Single delete
       if (body.id) {
         await db.prepare(
-          'DELETE FROM barang WHERE id = ?'
+          "DELETE FROM barang WHERE id = ?"
         ).bind(body.id).run();
-
-        return jsonResponse({ 
-          success: true, 
-          message: 'Barang berjaya dipadam'
+        return jsonResponse({
+          success: true,
+          message: "Barang berjaya dipadam"
         }, 200, corsHeaders);
       }
-
-      return jsonResponse({ 
-        success: false, 
-        error: 'ID atau IDs diperlukan'
+      return jsonResponse({
+        success: false,
+        error: "ID atau IDs diperlukan"
       }, 400, corsHeaders);
     }
   }
-
-  // ============================================
-  // ADMIN PENGGUNA API - User Management
-  // ============================================
-  
-  if (path === '/api/admin/pengguna') {
-    // GET - List all users
-    if (request.method === 'GET') {
+  if (path === "/api/admin/pengguna") {
+    if (request.method === "GET") {
       const users = await db.prepare(
-        'SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status, created_at FROM users ORDER BY created_at DESC'
+        "SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status, created_at FROM users ORDER BY created_at DESC"
       ).all();
-
-      return jsonResponse({ 
-        success: true, 
-        data: users.results 
+      return jsonResponse({
+        success: true,
+        data: users.results
       }, 200, corsHeaders);
     }
-
-    // POST - Create new user
-    if (request.method === 'POST') {
+    if (request.method === "POST") {
       const body = await request.json();
-      const id = 'user_' + Date.now();
-
+      const id = "user_" + Date.now();
       await db.prepare(`
         INSERT INTO users (id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, password_hash, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -355,80 +1217,62 @@ async function handleAPI(path, request, env, corsHeaders) {
         body.nama,
         body.role,
         body.fakulti,
-        body.no_telefon || '',
+        body.no_telefon || "",
         body.noMatrik || null,
         body.noStaf || null,
-        'password123', // Default password
-        'aktif'
+        "password123",
+        // Default password
+        "aktif"
       ).run();
-
-      return jsonResponse({ 
-        success: true, 
-        message: 'Pengguna berjaya ditambah',
+      return jsonResponse({
+        success: true,
+        message: "Pengguna berjaya ditambah",
         data: { id }
       }, 200, corsHeaders);
     }
-
-    // PUT - Update user
-    if (request.method === 'PUT') {
+    if (request.method === "PUT") {
       const body = await request.json();
-
-      if (body.action === 'reset-password') {
+      if (body.action === "reset-password") {
         await db.prepare(
           'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
-        ).bind('password123', body.id).run();
-
-        return jsonResponse({ 
-          success: true, 
-          message: 'Password berjaya direset kepada password123'
+        ).bind("password123", body.id).run();
+        return jsonResponse({
+          success: true,
+          message: "Password berjaya direset kepada password123"
         }, 200, corsHeaders);
       }
-
-      // Update status
       if (body.status) {
         await db.prepare(
           'UPDATE users SET status = ?, updated_at = datetime("now") WHERE id = ?'
         ).bind(body.status, body.id).run();
       }
-
-      return jsonResponse({ 
-        success: true, 
-        message: 'Pengguna berjaya dikemaskini'
+      return jsonResponse({
+        success: true,
+        message: "Pengguna berjaya dikemaskini"
       }, 200, corsHeaders);
     }
-
-    // DELETE - Remove user(s)
-    if (request.method === 'DELETE') {
+    if (request.method === "DELETE") {
       const body = await request.json();
-      
       if (Array.isArray(body.ids)) {
-        // Bulk delete
         for (const id of body.ids) {
-          await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
+          await db.prepare("DELETE FROM users WHERE id = ?").bind(id).run();
         }
-        return jsonResponse({ 
-          success: true, 
+        return jsonResponse({
+          success: true,
           message: `${body.ids.length} pengguna berjaya dipadam`
         }, 200, corsHeaders);
       } else {
-        // Single delete
-        await db.prepare('DELETE FROM users WHERE id = ?').bind(body.id).run();
-        return jsonResponse({ 
-          success: true, 
-          message: 'Pengguna berjaya dipadam'
+        await db.prepare("DELETE FROM users WHERE id = ?").bind(body.id).run();
+        return jsonResponse({
+          success: true,
+          message: "Pengguna berjaya dipadam"
         }, 200, corsHeaders);
       }
     }
   }
-
-  // ============================================
-  // USER TEMPAHAN API - Booking Management
-  // ============================================
-  
-  if (path === '/api/user/tempahan') {
-    // GET - List user's bookings
-    if (request.method === 'GET') {
-      const userId = 'user_003'; // TODO: Get from session
+  if (path === "/api/user/tempahan") {
+    if (request.method === "GET") {
+      const userId = "user_003";
       const tempahan = await db.prepare(`
         SELECT t.*, b.namaBarang, b.kategori, b.kodBarang
         FROM tempahan t
@@ -436,22 +1280,17 @@ async function handleAPI(path, request, env, corsHeaders) {
         WHERE t.userId = ?
         ORDER BY t.createdAt DESC
       `).bind(userId).all();
-
-      return jsonResponse({ 
-        success: true, 
-        data: tempahan.results 
+      return jsonResponse({
+        success: true,
+        data: tempahan.results
       }, 200, corsHeaders);
     }
-
-    // POST - Create new booking
-    if (request.method === 'POST') {
+    if (request.method === "POST") {
       try {
         const body = await request.json();
-        const id = 'tmp_' + Date.now();
-        const userId = body.userId || 'user_003'; // Use userId from body or fallback
-
-        console.log('Creating tempahan:', { id, userId, barangId: body.barangId, kuantiti: body.kuantiti });
-
+        const id = "tmp_" + Date.now();
+        const userId = body.userId || "user_003";
+        console.log("Creating tempahan:", { id, userId, barangId: body.barangId, kuantiti: body.kuantiti });
         await db.prepare(`
           INSERT INTO tempahan (id, userId, barangId, kuantiti, tarikhMula, tarikhTamat, tujuan, status)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -462,46 +1301,35 @@ async function handleAPI(path, request, env, corsHeaders) {
           body.kuantiti || 1,
           body.tarikhMula,
           body.tarikhTamat,
-          body.tujuan || '',
-          'Pending'
+          body.tujuan || "",
+          "Pending"
         ).run();
-
-        return jsonResponse({ 
-          success: true, 
-          message: 'Tempahan berjaya dihantar',
+        return jsonResponse({
+          success: true,
+          message: "Tempahan berjaya dihantar",
           data: { id }
         }, 200, corsHeaders);
-      } catch (error) {
-        console.error('POST tempahan error:', error);
-        return jsonResponse({ 
-          success: false, 
-          error: error.message || 'Gagal membuat tempahan'
+      } catch (error3) {
+        console.error("POST tempahan error:", error3);
+        return jsonResponse({
+          success: false,
+          error: error3.message || "Gagal membuat tempahan"
         }, 500, corsHeaders);
       }
     }
-
-    // DELETE - Cancel booking
-    if (request.method === 'DELETE') {
+    if (request.method === "DELETE") {
       const body = await request.json();
-      
       await db.prepare(
         'UPDATE tempahan SET status = ?, updatedAt = datetime("now") WHERE id = ?'
-      ).bind('Dibatalkan', body.id).run();
-
-      return jsonResponse({ 
-        success: true, 
-        message: 'Tempahan berjaya dibatalkan'
+      ).bind("Dibatalkan", body.id).run();
+      return jsonResponse({
+        success: true,
+        message: "Tempahan berjaya dibatalkan"
       }, 200, corsHeaders);
     }
   }
-
-  // ============================================
-  // STAFF-ICT KELULUSAN API - Approval Management
-  // ============================================
-  
-  if (path === '/api/staff-ict/kelulusan') {
-    // GET - List all tempahan (frontend will filter by status)
-    if (request.method === 'GET') {
+  if (path === "/api/staff-ict/kelulusan") {
+    if (request.method === "GET") {
       const tempahan = await db.prepare(`
         SELECT t.*, b.namaBarang, b.kategori, b.lokasi, 
                u.nama as namaPemohon, u.email as emailPemohon, u.fakulti
@@ -510,18 +1338,14 @@ async function handleAPI(path, request, env, corsHeaders) {
         JOIN users u ON t.userId = u.id
         ORDER BY t.createdAt DESC
       `).all();
-
-      return jsonResponse({ 
-        success: true, 
-        data: tempahan.results 
+      return jsonResponse({
+        success: true,
+        data: tempahan.results
       }, 200, corsHeaders);
     }
-
-    // PUT - Approve/Reject booking
-    if (request.method === 'PUT') {
+    if (request.method === "PUT") {
       const body = await request.json();
-      const staffId = 'user_002'; // TODO: Get from session
-
+      const staffId = "user_002";
       await db.prepare(`
         UPDATE tempahan SET 
           status = ?, 
@@ -532,34 +1356,25 @@ async function handleAPI(path, request, env, corsHeaders) {
         WHERE id = ?
       `).bind(
         body.status,
-        body.catatan || '',
+        body.catatan || "",
         staffId,
         body.id
       ).run();
-
-      // If approved, update barang quantity
-      if (body.status === 'Diluluskan') {
+      if (body.status === "Diluluskan") {
         const tempahan = await db.prepare(
-          'SELECT barangId, kuantiti FROM tempahan WHERE id = ?'
+          "SELECT barangId, kuantiti FROM tempahan WHERE id = ?"
         ).bind(body.id).first();
-
         await db.prepare(
-          'UPDATE barang SET kuantitiTersedia = kuantitiTersedia - ? WHERE id = ?'
+          "UPDATE barang SET kuantitiTersedia = kuantitiTersedia - ? WHERE id = ?"
         ).bind(tempahan.kuantiti, tempahan.barangId).run();
       }
-
-      return jsonResponse({ 
-        success: true, 
-        message: body.status === 'Diluluskan' ? 'Tempahan diluluskan' : 'Tempahan ditolak'
+      return jsonResponse({
+        success: true,
+        message: body.status === "Diluluskan" ? "Tempahan diluluskan" : "Tempahan ditolak"
       }, 200, corsHeaders);
     }
   }
-
-  // ============================================
-  // LAPORAN API - Reports
-  // ============================================
-  
-  if (path === '/api/staff-ict/laporan/keseluruhan' && request.method === 'GET') {
+  if (path === "/api/staff-ict/laporan/keseluruhan" && request.method === "GET") {
     const stats = await db.prepare(`
       SELECT 
         (SELECT COUNT(*) FROM tempahan) as totalTempahan,
@@ -571,22 +1386,18 @@ async function handleAPI(path, request, env, corsHeaders) {
         (SELECT COUNT(*) FROM users WHERE peranan = 'pelajar') as totalPelajar,
         (SELECT COUNT(*) FROM users WHERE peranan = 'pengajar') as totalPengajar
     `).first();
-
     return jsonResponse({ success: true, data: stats }, 200, corsHeaders);
   }
-
-  if (path === '/api/staff-ict/laporan/barang' && request.method === 'GET') {
+  if (path === "/api/staff-ict/laporan/barang" && request.method === "GET") {
     const barang = await db.prepare(`
       SELECT b.*, 
         (SELECT COUNT(*) FROM tempahan WHERE barangId = b.id AND status = 'Diluluskan') as jumlahDipinjam
       FROM barang b
       ORDER BY jumlahDipinjam DESC
     `).all();
-
     return jsonResponse({ success: true, data: barang.results }, 200, corsHeaders);
   }
-
-  if (path === '/api/staff-ict/laporan/tempahan' && request.method === 'GET') {
+  if (path === "/api/staff-ict/laporan/tempahan" && request.method === "GET") {
     const tempahan = await db.prepare(`
       SELECT t.*, b.namaBarang, u.nama as namaPemohon, u.fakulti
       FROM tempahan t
@@ -595,286 +1406,209 @@ async function handleAPI(path, request, env, corsHeaders) {
       ORDER BY t.createdAt DESC
       LIMIT 100
     `).all();
-
     return jsonResponse({ success: true, data: tempahan.results }, 200, corsHeaders);
   }
-
-  // ============================================
-  // PROFILE API - Get current user profile
-  // ============================================
-  
-  if (path === '/api/user/profile' && request.method === 'GET') {
+  if (path === "/api/user/profile" && request.method === "GET") {
     const urlParams = new URL(request.url);
-    const userId = urlParams.searchParams.get('userId') || 'user_003';
+    const userId = urlParams.searchParams.get("userId") || "user_003";
     const user = await db.prepare(
-      'SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?'
+      "SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?"
     ).bind(userId).first();
-
     if (!user) {
-      return jsonResponse({ success: false, error: 'User not found' }, 404, corsHeaders);
+      return jsonResponse({ success: false, error: "User not found" }, 404, corsHeaders);
     }
-
     return jsonResponse({ success: true, data: user }, 200, corsHeaders);
   }
-
-  if (path === '/api/staff-ict/profile' && request.method === 'GET') {
+  if (path === "/api/staff-ict/profile" && request.method === "GET") {
     const urlParams = new URL(request.url);
-    const userId = urlParams.searchParams.get('userId') || 'user_002';
+    const userId = urlParams.searchParams.get("userId") || "user_002";
     const user = await db.prepare(
-      'SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?'
+      "SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?"
     ).bind(userId).first();
-
     if (!user) {
-      return jsonResponse({ success: false, error: 'User not found' }, 404, corsHeaders);
+      return jsonResponse({ success: false, error: "User not found" }, 404, corsHeaders);
     }
-
     return jsonResponse({ success: true, data: user }, 200, corsHeaders);
   }
-
-  if (path === '/api/admin/profile' && request.method === 'GET') {
+  if (path === "/api/admin/profile" && request.method === "GET") {
     const urlParams = new URL(request.url);
-    const userId = urlParams.searchParams.get('userId') || 'user_001';
+    const userId = urlParams.searchParams.get("userId") || "user_001";
     const user = await db.prepare(
-      'SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?'
+      "SELECT id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, status FROM users WHERE id = ?"
     ).bind(userId).first();
-
     if (!user) {
-      return jsonResponse({ success: false, error: 'User not found' }, 404, corsHeaders);
+      return jsonResponse({ success: false, error: "User not found" }, 404, corsHeaders);
     }
-
     return jsonResponse({ success: true, data: user }, 200, corsHeaders);
   }
-
-  // POST /api/auth/logout
-  if (path === '/api/auth/logout' && request.method === 'POST') {
-    return jsonResponse({ 
-      success: true, 
-      message: 'Logout berjaya' 
+  if (path === "/api/auth/logout" && request.method === "POST") {
+    return jsonResponse({
+      success: true,
+      message: "Logout berjaya"
     }, 200, corsHeaders);
   }
-
-  // API not found
-  return jsonResponse({ 
-    success: false, 
-    error: 'API endpoint not found' 
+  return jsonResponse({
+    success: false,
+    error: "API endpoint not found"
   }, 404, corsHeaders);
 }
-
-// ============================================
-// PAGE HANDLERS (HTML)
-// ============================================
-
+__name(handleAPI, "handleAPI");
 async function handlePage(path, corsHeaders) {
-  // Home page
-  if (path === '/' || path === '') {
+  if (path === "/" || path === "") {
     return htmlResponse(getHomeHTML(), corsHeaders);
   }
-
-  // Login page
-  if (path === '/login') {
+  if (path === "/login") {
     return htmlResponse(getLoginHTML(), corsHeaders);
   }
-
-  // User dashboard
-  if (path === '/user/dashboard') {
+  if (path === "/user/dashboard") {
     return htmlResponse(getUserDashboardHTML(), corsHeaders);
   }
-
-  // Admin dashboard
-  if (path === '/admin/dashboard') {
+  if (path === "/admin/dashboard") {
     return htmlResponse(getAdminDashboardHTML(), corsHeaders);
   }
-
-  // Admin barang page
-  if (path === '/admin/barang') {
+  if (path === "/admin/barang") {
     return htmlResponse(getAdminBarangHTML(), corsHeaders);
   }
-
-  // Admin pengguna page
-  if (path === '/admin/pengguna') {
+  if (path === "/admin/pengguna") {
     return htmlResponse(getAdminPenggunaHTML(), corsHeaders);
   }
-
-  // Admin laporan page
-  if (path === '/admin/laporan') {
+  if (path === "/admin/laporan") {
     return htmlResponse(getAdminLaporanHTML(), corsHeaders);
   }
-
-  // Admin profile page
-  if (path === '/admin/profile') {
+  if (path === "/admin/profile") {
     return htmlResponse(getAdminProfileHTML(), corsHeaders);
   }
-
-  // Admin tetapan sistem page
-  if (path === '/admin/tetapan/sistem') {
+  if (path === "/admin/tetapan/sistem") {
     return htmlResponse(getAdminTetapanSistemHTML(), corsHeaders);
   }
-
-  // Admin tetapan keselamatan page
-  if (path === '/admin/tetapan/keselamatan') {
+  if (path === "/admin/tetapan/keselamatan") {
     return htmlResponse(getAdminTetapanKeselamatanHTML(), corsHeaders);
   }
-
-  // Admin tetapan log aktiviti page
-  if (path === '/admin/tetapan/log-aktiviti') {
+  if (path === "/admin/tetapan/log-aktiviti") {
     return htmlResponse(getAdminTetapanLogAktivitiHTML(), corsHeaders);
   }
-
-  // Admin tetapan backup pulih page
-  if (path === '/admin/tetapan/backup-pulih') {
+  if (path === "/admin/tetapan/backup-pulih") {
     return htmlResponse(getAdminTetapanBackupPulihHTML(), corsHeaders);
   }
-
-  // User barang page
-  if (path === '/user/barang') {
+  if (path === "/user/barang") {
     return htmlResponse(getUserBarangHTML(), corsHeaders);
   }
-
-  // User profile page
-  if (path === '/user/profile') {
+  if (path === "/user/profile") {
     return htmlResponse(getUserProfileHTML(), corsHeaders);
   }
-
-  // User sejarah page
-  if (path === '/user/sejarah') {
+  if (path === "/user/sejarah") {
     return htmlResponse(getUserSejarahHTML(), corsHeaders);
   }
-
-  // User tempahan page
-  if (path === '/user/tempahan') {
+  if (path === "/user/tempahan") {
     return htmlResponse(getUserTempahanHTML(), corsHeaders);
   }
-
-  // Staff-ICT dashboard
-  if (path === '/staff-ict/dashboard') {
+  if (path === "/staff-ict/dashboard") {
     return htmlResponse(getStaffDashboardHTML(), corsHeaders);
   }
-
-  // Staff-ICT barang page
-  if (path === '/staff-ict/barang') {
+  if (path === "/staff-ict/barang") {
     return htmlResponse(getStaffBarangHTML(), corsHeaders);
   }
-
-  // Staff-ICT kelulusan page
-  if (path === '/staff-ict/kelulusan') {
+  if (path === "/staff-ict/kelulusan") {
     return htmlResponse(getStaffKelulusanHTML(), corsHeaders);
   }
-
-  // Staff-ICT profile page
-  if (path === '/staff-ict/profile') {
+  if (path === "/staff-ict/profile") {
     return htmlResponse(getStaffProfileHTML(), corsHeaders);
   }
-
-  // Staff-ICT laporan keseluruhan
-  if (path === '/staff-ict/laporan/keseluruhan') {
+  if (path === "/staff-ict/laporan/keseluruhan") {
     return htmlResponse(getStaffLaporanKeseluruhanHTML(), corsHeaders);
   }
-
-  // Staff-ICT laporan barang
-  if (path === '/staff-ict/laporan/barang') {
+  if (path === "/staff-ict/laporan/barang") {
     return htmlResponse(getStaffLaporanBarangHTML(), corsHeaders);
   }
-
-  // Staff-ICT laporan tempahan
-  if (path === '/staff-ict/laporan/tempahan') {
+  if (path === "/staff-ict/laporan/tempahan") {
     return htmlResponse(getStaffLaporanTempahanHTML(), corsHeaders);
   }
-
-  // 404
-  return htmlResponse('<h1>404 - Page Not Found</h1>', corsHeaders, 404);
+  return htmlResponse("<h1>404 - Page Not Found</h1>", corsHeaders, 404);
 }
-
-// ============================================
-// HTML TEMPLATES
-// ============================================
-
-// Shared favicon component for all pages
+__name(handlePage, "handlePage");
 function getFaviconHTML() {
   return `<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%232563eb'/><text x='16' y='22' text-anchor='middle' font-family='Arial' font-size='14' font-weight='700' fill='white'>iB</text></svg>">`;
 }
-
-// Shared bottom navigation for Admin pages
-function getAdminBottomNavHTML(activePage = '') {
+__name(getFaviconHTML, "getFaviconHTML");
+function getAdminBottomNavHTML(activePage = "") {
   return `
     <!-- Bottom Navigation -->
     <div class="fixed bottom-4 left-4 right-4 bg-white rounded-xl shadow-lg p-3 border border-gray-200">
       <!-- Mobile & Desktop: Always show text -->
       <div class="grid grid-cols-3 md:grid-cols-6 gap-1 md:gap-2">
-        <button onclick="window.location.href='/admin/dashboard'" class="text-center py-1 md:py-2 px-1 ${activePage === 'dashboard' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          🏠<br><span class="text-xs">Dashboard</span>
+        <button onclick="window.location.href='/admin/dashboard'" class="text-center py-1 md:py-2 px-1 ${activePage === "dashboard" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F3E0}<br><span class="text-xs">Dashboard</span>
         </button>
-        <button onclick="window.location.href='/admin/pengguna'" class="text-center py-1 md:py-2 px-1 ${activePage === 'pengguna' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          👥<br><span class="text-xs">Pengguna</span>
+        <button onclick="window.location.href='/admin/pengguna'" class="text-center py-1 md:py-2 px-1 ${activePage === "pengguna" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F465}<br><span class="text-xs">Pengguna</span>
         </button>
-        <button onclick="window.location.href='/admin/barang'" class="text-center py-1 md:py-2 px-1 ${activePage === 'barang' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          📦<br><span class="text-xs">Barang</span>
+        <button onclick="window.location.href='/admin/barang'" class="text-center py-1 md:py-2 px-1 ${activePage === "barang" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F4E6}<br><span class="text-xs">Barang</span>
         </button>
-        <button onclick="window.location.href='/admin/laporan'" class="text-center py-1 md:py-2 px-1 ${activePage === 'laporan' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          📊<br><span class="text-xs">Laporan</span>
+        <button onclick="window.location.href='/admin/laporan'" class="text-center py-1 md:py-2 px-1 ${activePage === "laporan" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F4CA}<br><span class="text-xs">Laporan</span>
         </button>
-        <button onclick="window.location.href='/admin/tetapan/sistem'" class="text-center py-1 md:py-2 px-1 ${activePage === 'tetapan' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          ⚙️<br><span class="text-xs">Tetapan</span>
+        <button onclick="window.location.href='/admin/tetapan/sistem'" class="text-center py-1 md:py-2 px-1 ${activePage === "tetapan" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u2699\uFE0F<br><span class="text-xs">Tetapan</span>
         </button>
-        <button onclick="window.location.href='/admin/profile'" class="text-center py-1 md:py-2 px-1 ${activePage === 'profile' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          👤<br><span class="text-xs">Profil</span>
+        <button onclick="window.location.href='/admin/profile'" class="text-center py-1 md:py-2 px-1 ${activePage === "profile" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F464}<br><span class="text-xs">Profil</span>
         </button>
       </div>
     </div>
   `;
 }
-
-// Shared bottom navigation for User pages
-function getUserBottomNavHTML(activePage = '') {
+__name(getAdminBottomNavHTML, "getAdminBottomNavHTML");
+function getUserBottomNavHTML(activePage = "") {
   return `
     <!-- Bottom Navigation -->
     <div class="fixed bottom-4 left-4 right-4 bg-white rounded-xl shadow-lg p-3 border border-gray-200">
       <div class="flex justify-between items-center">
-        <button onclick="window.location.href='/user/dashboard'" class="flex-1 text-center py-2 px-1 ${activePage === 'dashboard' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium mx-1 transition-colors">
-          🏠<br><span class="text-xs">Dashboard</span>
+        <button onclick="window.location.href='/user/dashboard'" class="flex-1 text-center py-2 px-1 ${activePage === "dashboard" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium mx-1 transition-colors">
+          \u{1F3E0}<br><span class="text-xs">Dashboard</span>
         </button>
-        <button onclick="window.location.href='/user/barang'" class="flex-1 text-center py-2 px-1 ${activePage === 'barang' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium mx-1 transition-colors">
-          📦<br><span class="text-xs">Barang</span>
+        <button onclick="window.location.href='/user/barang'" class="flex-1 text-center py-2 px-1 ${activePage === "barang" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium mx-1 transition-colors">
+          \u{1F4E6}<br><span class="text-xs">Barang</span>
         </button>
-        <button onclick="window.location.href='/user/tempahan'" class="flex-1 text-center py-2 px-1 ${activePage === 'tempahan' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium mx-1 transition-colors">
-          📝<br><span class="text-xs">Tempahan</span>
+        <button onclick="window.location.href='/user/tempahan'" class="flex-1 text-center py-2 px-1 ${activePage === "tempahan" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium mx-1 transition-colors">
+          \u{1F4DD}<br><span class="text-xs">Tempahan</span>
         </button>
-        <button onclick="window.location.href='/user/sejarah'" class="flex-1 text-center py-2 px-1 ${activePage === 'sejarah' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium mx-1 transition-colors">
-          📊<br><span class="text-xs">Sejarah</span>
+        <button onclick="window.location.href='/user/sejarah'" class="flex-1 text-center py-2 px-1 ${activePage === "sejarah" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium mx-1 transition-colors">
+          \u{1F4CA}<br><span class="text-xs">Sejarah</span>
         </button>
-        <button onclick="window.location.href='/user/profile'" class="flex-1 text-center py-2 px-1 ${activePage === 'profile' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium mx-1 transition-colors">
-          👤<br><span class="text-xs">Profil</span>
+        <button onclick="window.location.href='/user/profile'" class="flex-1 text-center py-2 px-1 ${activePage === "profile" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium mx-1 transition-colors">
+          \u{1F464}<br><span class="text-xs">Profil</span>
         </button>
       </div>
     </div>
   `;
 }
-
-// Shared bottom navigation for Staff-ICT pages
-function getStaffBottomNavHTML(activePage = '') {
+__name(getUserBottomNavHTML, "getUserBottomNavHTML");
+function getStaffBottomNavHTML(activePage = "") {
   return `
     <!-- Bottom Navigation -->
     <div class="fixed bottom-4 left-4 right-4 bg-white rounded-xl shadow-lg p-3 border border-gray-200">
       <div class="grid grid-cols-3 md:grid-cols-5 gap-1 md:gap-2">
-        <button onclick="window.location.href='/staff-ict/dashboard'" class="text-center py-1 md:py-2 px-1 ${activePage === 'dashboard' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          🏠<br><span class="text-xs">Dashboard</span>
+        <button onclick="window.location.href='/staff-ict/dashboard'" class="text-center py-1 md:py-2 px-1 ${activePage === "dashboard" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F3E0}<br><span class="text-xs">Dashboard</span>
         </button>
-        <button onclick="window.location.href='/staff-ict/barang'" class="text-center py-1 md:py-2 px-1 ${activePage === 'barang' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          📦<br><span class="text-xs">Barang</span>
+        <button onclick="window.location.href='/staff-ict/barang'" class="text-center py-1 md:py-2 px-1 ${activePage === "barang" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F4E6}<br><span class="text-xs">Barang</span>
         </button>
-        <button onclick="window.location.href='/staff-ict/kelulusan'" class="text-center py-1 md:py-2 px-1 ${activePage === 'kelulusan' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          ✅<br><span class="text-xs">Kelulusan</span>
+        <button onclick="window.location.href='/staff-ict/kelulusan'" class="text-center py-1 md:py-2 px-1 ${activePage === "kelulusan" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u2705<br><span class="text-xs">Kelulusan</span>
         </button>
-        <button onclick="window.location.href='/staff-ict/laporan/keseluruhan'" class="text-center py-1 md:py-2 px-1 ${activePage === 'laporan' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          📊<br><span class="text-xs">Laporan</span>
+        <button onclick="window.location.href='/staff-ict/laporan/keseluruhan'" class="text-center py-1 md:py-2 px-1 ${activePage === "laporan" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F4CA}<br><span class="text-xs">Laporan</span>
         </button>
-        <button onclick="window.location.href='/staff-ict/profile'" class="text-center py-1 md:py-2 px-1 ${activePage === 'profile' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'} rounded-lg text-xs font-medium transition-colors">
-          👤<br><span class="text-xs">Profil</span>
+        <button onclick="window.location.href='/staff-ict/profile'" class="text-center py-1 md:py-2 px-1 ${activePage === "profile" ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200"} rounded-lg text-xs font-medium transition-colors">
+          \u{1F464}<br><span class="text-xs">Profil</span>
         </button>
       </div>
     </div>
   `;
 }
-
+__name(getStaffBottomNavHTML, "getStaffBottomNavHTML");
 function getHomeHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -883,7 +1617,7 @@ function getHomeHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistem i-Borrow - ILKKM Johor Bahru</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -928,7 +1662,7 @@ function getHomeHTML() {
 </body>
 </html>`;
 }
-
+__name(getHomeHTML, "getHomeHTML");
 function getLoginHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -937,7 +1671,7 @@ function getLoginHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Sistem i-Borrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1055,11 +1789,11 @@ function getLoginHTML() {
         loginBtn.textContent = 'Log Masuk';
       }
     });
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getLoginHTML, "getLoginHTML");
 function getUserDashboardHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -1068,7 +1802,7 @@ function getUserDashboardHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - User</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1081,7 +1815,7 @@ function getUserDashboardHTML() {
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-            <span class="text-xs font-medium">🏠 DASHBOARD</span>
+            <span class="text-xs font-medium">\u{1F3E0} DASHBOARD</span>
           </div>
         </div>
         <button 
@@ -1093,7 +1827,7 @@ function getUserDashboardHTML() {
       </div>
       
       <div class="text-center">
-        <h1 class="text-xl font-bold text-gray-900">👋 Dashboard Pengguna</h1>
+        <h1 class="text-xl font-bold text-gray-900">\u{1F44B} Dashboard Pengguna</h1>
         <p class="text-gray-600 text-sm mt-1">Pinjam barang ICT ILKKM dengan mudah</p>
       </div>
     </div>
@@ -1128,7 +1862,7 @@ function getUserDashboardHTML() {
     <!-- Senarai Barang -->
     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm">📦 Barang Tersedia</h2>
+        <h2 class="font-semibold text-gray-900 text-sm">\u{1F4E6} Barang Tersedia</h2>
         <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" id="barangCount">
           Loading...
         </span>
@@ -1143,22 +1877,22 @@ function getUserDashboardHTML() {
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div class="flex items-start gap-3">
         <div class="bg-blue-100 p-2 rounded-lg">
-          <span class="text-blue-600 text-sm">💡</span>
+          <span class="text-blue-600 text-sm">\u{1F4A1}</span>
         </div>
         <div>
           <h4 class="font-semibold text-blue-800 text-sm mb-2">Cara Meminjam Barang</h4>
           <ul class="text-blue-700 text-xs space-y-1">
-            <li>• Klik "Pinjam Sekarang" pada barang yang ingin dipinjam</li>
-            <li>• Tempahan akan menunggu kelulusan Staff ICT</li>
-            <li>• Anda akan dimaklumkan melalui emel apabila diluluskan</li>
-            <li>• Ambil barang di Kaunter ICT dalam tempoh 24 jam</li>
-            <li>• Pastikan maklumat peribadi anda lengkap dalam profil</li>
+            <li>\u2022 Klik "Pinjam Sekarang" pada barang yang ingin dipinjam</li>
+            <li>\u2022 Tempahan akan menunggu kelulusan Staff ICT</li>
+            <li>\u2022 Anda akan dimaklumkan melalui emel apabila diluluskan</li>
+            <li>\u2022 Ambil barang di Kaunter ICT dalam tempoh 24 jam</li>
+            <li>\u2022 Pastikan maklumat peribadi anda lengkap dalam profil</li>
           </ul>
         </div>
       </div>
     </div>
 
-    ${getUserBottomNavHTML('dashboard')}
+    ${getUserBottomNavHTML("dashboard")}
   </div>
   
   <script>
@@ -1194,7 +1928,7 @@ function getUserDashboardHTML() {
                 <div class="flex justify-between items-start">
                   <div class="flex-1">
                     <div class="flex items-center gap-2 mb-2">
-                      <span class="text-lg">📦</span>
+                      <span class="text-lg">\u{1F4E6}</span>
                       <h3 class="font-semibold text-gray-900 text-sm">\${barang.namaBarang}</h3>
                     </div>
                     <p class="text-gray-600 text-xs mb-2">\${barang.catatan || 'Barang ICT'}</p>
@@ -1205,7 +1939,7 @@ function getUserDashboardHTML() {
                       <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
                         \${barang.status}
                       </span>
-                      <span class="text-gray-500 text-xs">📍 \${barang.lokasi || 'Kaunter ICT'}</span>
+                      <span class="text-gray-500 text-xs">\u{1F4CD} \${barang.lokasi || 'Kaunter ICT'}</span>
                     </div>
                   </div>
                 </div>
@@ -1213,7 +1947,7 @@ function getUserDashboardHTML() {
                   onclick="handlePinjam('\${barang.namaBarang}')"
                   class="w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors bg-blue-500 text-white hover:bg-blue-600"
                 >
-                  📌 Pinjam Sekarang
+                  \u{1F4CC} Pinjam Sekarang
                 </button>
               </div>
             </div>
@@ -1263,18 +1997,18 @@ function getUserDashboardHTML() {
           throw new Error(error.error || 'Gagal membuat tempahan');
         }
 
-        alert('✅ BERJAYA MEMINJAM!\\n\\n📦 ' + nama + '\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT');
+        alert('\u2705 BERJAYA MEMINJAM!\\n\\n\u{1F4E6} ' + nama + '\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT');
         location.reload();
       } catch (error) {
         console.error('Error creating tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getUserDashboardHTML, "getUserDashboardHTML");
 function getAdminDashboardHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -1283,7 +2017,7 @@ function getAdminDashboardHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1296,7 +2030,7 @@ function getAdminDashboardHTML() {
       <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-2">
           <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-            <span class="text-xs font-medium">🏠 DASHBOARD</span>
+            <span class="text-xs font-medium">\u{1F3E0} DASHBOARD</span>
           </div>
         </div>
         <button 
@@ -1308,7 +2042,7 @@ function getAdminDashboardHTML() {
       </div>
       
       <div class="text-center">
-        <h1 class="text-xl font-bold text-gray-900">👨‍💼 Dashboard Admin</h1>
+        <h1 class="text-xl font-bold text-gray-900">\u{1F468}\u200D\u{1F4BC} Dashboard Admin</h1>
         <p class="text-gray-600 text-sm mt-1">Urus sistem i-Borrow ILKKM</p>
       </div>
     </div>
@@ -1342,31 +2076,31 @@ function getAdminDashboardHTML() {
 
     <!-- Quick Actions -->
     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-      <h2 class="font-semibold text-gray-900 text-sm mb-3">⚡ Akses Pantas</h2>
+      <h2 class="font-semibold text-gray-900 text-sm mb-3">\u26A1 Akses Pantas</h2>
       <div class="grid grid-cols-2 gap-2">
         <button 
           onclick="window.location.href='/admin/pengguna'"
           class="bg-blue-50 text-blue-700 py-3 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors border border-blue-200"
         >
-          👥 Urus Pengguna
+          \u{1F465} Urus Pengguna
         </button>
         <button 
           onclick="window.location.href='/admin/barang'"
           class="bg-green-50 text-green-700 py-3 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors border border-green-200"
         >
-          📦 Urus Barang
+          \u{1F4E6} Urus Barang
         </button>
         <button 
           onclick="window.location.href='/admin/laporan'"
           class="bg-purple-50 text-purple-700 py-3 rounded-lg text-xs font-medium hover:bg-purple-100 transition-colors border border-purple-200"
         >
-          📊 Lihat Laporan
+          \u{1F4CA} Lihat Laporan
         </button>
         <button 
           onclick="window.location.href='/admin/tetapan/sistem'"
           class="bg-orange-50 text-orange-700 py-3 rounded-lg text-xs font-medium hover:bg-orange-100 transition-colors border border-orange-200"
         >
-          ⚙️ Tetapan
+          \u2699\uFE0F Tetapan
         </button>
       </div>
     </div>
@@ -1375,7 +2109,7 @@ function getAdminDashboardHTML() {
     <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
       <div class="flex items-center gap-3">
         <div class="bg-green-100 p-2 rounded-lg">
-          <span class="text-green-600 text-sm">✅</span>
+          <span class="text-green-600 text-sm">\u2705</span>
         </div>
         <div>
           <h4 class="font-semibold text-green-800 text-sm">Cloudflare D1 Database</h4>
@@ -1388,22 +2122,22 @@ function getAdminDashboardHTML() {
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div class="flex items-start gap-3">
         <div class="bg-blue-100 p-2 rounded-lg">
-          <span class="text-blue-600 text-sm">💡</span>
+          <span class="text-blue-600 text-sm">\u{1F4A1}</span>
         </div>
         <div>
           <h4 class="font-semibold text-blue-800 text-sm mb-2">Fungsi Dashboard Admin</h4>
           <ul class="text-blue-700 text-xs space-y-1">
-            <li>• <strong>Urus Pengguna</strong> - Aktifkan/nyahaktifkan akaun pengguna</li>
-            <li>• <strong>Urus Barang</strong> - Tambah dan kemaskini status inventori</li>
-            <li>• <strong>Pantau Tempahan</strong> - Lihat semua aktiviti pinjaman</li>
-            <li>• <strong>Laporan</strong> - Analisis penggunaan sistem</li>
-            <li>• <strong>Tetapan</strong> - Konfigurasi sistem dan keselamatan</li>
+            <li>\u2022 <strong>Urus Pengguna</strong> - Aktifkan/nyahaktifkan akaun pengguna</li>
+            <li>\u2022 <strong>Urus Barang</strong> - Tambah dan kemaskini status inventori</li>
+            <li>\u2022 <strong>Pantau Tempahan</strong> - Lihat semua aktiviti pinjaman</li>
+            <li>\u2022 <strong>Laporan</strong> - Analisis penggunaan sistem</li>
+            <li>\u2022 <strong>Tetapan</strong> - Konfigurasi sistem dan keselamatan</li>
           </ul>
         </div>
       </div>
     </div>
 
-    ${getAdminBottomNavHTML('dashboard')}
+    ${getAdminBottomNavHTML("dashboard")}
   </div>
   
   <script>
@@ -1431,11 +2165,11 @@ function getAdminDashboardHTML() {
       .catch(err => {
         console.error('Failed to load dashboard stats:', err);
       });
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getAdminDashboardHTML, "getAdminDashboardHTML");
 function getUserBarangHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -1444,7 +2178,7 @@ function getUserBarangHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Barang - User</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1460,10 +2194,10 @@ function getUserBarangHTML() {
             onclick="window.location.href='/user/dashboard'"
             class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors"
           >
-            ← Dashboard
+            \u2190 Dashboard
           </button>
           <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-            <span class="text-xs font-medium">📦 BARANG</span>
+            <span class="text-xs font-medium">\u{1F4E6} BARANG</span>
           </div>
         </div>
         <button 
@@ -1474,7 +2208,7 @@ function getUserBarangHTML() {
         </button>
       </div>
       <div class="text-center">
-        <h1 class="text-xl font-bold text-gray-900">📦 Senarai Barang ICT</h1>
+        <h1 class="text-xl font-bold text-gray-900">\u{1F4E6} Senarai Barang ICT</h1>
         <p class="text-gray-600 text-sm mt-1">Lihat dan buat tempahan barang</p>
       </div>
     </div>
@@ -1533,7 +2267,7 @@ function getUserBarangHTML() {
     <!-- Senarai Barang -->
     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm">📦 Senarai Barang ICT</h2>
+        <h2 class="font-semibold text-gray-900 text-sm">\u{1F4E6} Senarai Barang ICT</h2>
         <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" id="barangCount">8 barang</span>
       </div>
       <div id="barangList" class="space-y-3">
@@ -1545,21 +2279,21 @@ function getUserBarangHTML() {
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div class="flex items-start gap-3">
         <div class="bg-blue-100 p-2 rounded-lg">
-          <span class="text-blue-600 text-sm">💡</span>
+          <span class="text-blue-600 text-sm">\u{1F4A1}</span>
         </div>
         <div>
           <h4 class="font-semibold text-blue-800 text-sm mb-2">Proses Tempahan</h4>
           <ul class="text-blue-700 text-xs space-y-1">
-            <li>• <strong>Klik "Buat Tempahan"</strong> - Barang akan ditempah</li>
-            <li>• <strong>Menunggu Kelulusan</strong> - Staff ICT akan semak</li>
-            <li>• <strong>Notifikasi Email</strong> - Anda akan dapat email bila status berubah</li>
-            <li>• <strong>Ambil Barang</strong> - Di Kaunter ICT setelah diluluskan</li>
+            <li>\u2022 <strong>Klik "Buat Tempahan"</strong> - Barang akan ditempah</li>
+            <li>\u2022 <strong>Menunggu Kelulusan</strong> - Staff ICT akan semak</li>
+            <li>\u2022 <strong>Notifikasi Email</strong> - Anda akan dapat email bila status berubah</li>
+            <li>\u2022 <strong>Ambil Barang</strong> - Di Kaunter ICT setelah diluluskan</li>
           </ul>
         </div>
       </div>
     </div>
 
-    ${getUserBottomNavHTML('barang')}
+    ${getUserBottomNavHTML("barang")}
   </div>
 
   <script>
@@ -1592,7 +2326,7 @@ function getUserBarangHTML() {
         renderBarang(senaraiBarang);
       } catch (error) {
         console.error('Error loading barang:', error);
-        document.getElementById('barangList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">❌</div><p class="text-red-500 text-sm">Error memuat barang. Sila refresh.</p></div>';
+        document.getElementById('barangList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">\u274C</div><p class="text-red-500 text-sm">Error memuat barang. Sila refresh.</p></div>';
       }
     }
 
@@ -1620,13 +2354,13 @@ function getUserBarangHTML() {
 
     function getGambar(kategori) {
       const gambar = {
-        'elektronik': '💻',
-        'fotografi': '📷',
-        'alat-tulis': '🧮',
-        'buku': '📚',
-        'audio': '🎤'
+        'elektronik': '\u{1F4BB}',
+        'fotografi': '\u{1F4F7}',
+        'alat-tulis': '\u{1F9EE}',
+        'buku': '\u{1F4DA}',
+        'audio': '\u{1F3A4}'
       };
-      return gambar[kategori] || '📦';
+      return gambar[kategori] || '\u{1F4E6}';
     }
 
     async function handlePinjam(barang) {
@@ -1665,11 +2399,11 @@ function getUserBarangHTML() {
 
         tempahanSaya.push(barang.id);
         document.getElementById('tempahanCount').textContent = tempahanSaya.length;
-        alert('✅ BERJAYA MEMINJAM!\\n\\n📦 ' + barang.namaBarang + '\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT');
+        alert('\u2705 BERJAYA MEMINJAM!\\n\\n\u{1F4E6} ' + barang.namaBarang + '\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT');
         renderBarang(senaraiBarang);
       } catch (error) {
         console.error('Error creating tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -1690,7 +2424,7 @@ function getUserBarangHTML() {
     function renderBarang(barangList) {
       const container = document.getElementById('barangList');
       if (barangList.length === 0) {
-        container.innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">📦</div><p class="text-gray-500 text-sm">Tiada barang ditemui</p></div>';
+        container.innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">\u{1F4E6}</div><p class="text-gray-500 text-sm">Tiada barang ditemui</p></div>';
         return;
       }
 
@@ -1710,8 +2444,8 @@ function getUserBarangHTML() {
                   </div>
                   <p class="text-gray-600 text-xs mb-2">\${barang.catatan || 'Barang ICT ILKKM'}</p>
                   <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-gray-500 text-xs">📍 \${barang.lokasi}</span>
-                    <span class="text-gray-500 text-xs">📊 Tersedia: \${barang.kuantitiTersedia}</span>
+                    <span class="text-gray-500 text-xs">\u{1F4CD} \${barang.lokasi}</span>
+                    <span class="text-gray-500 text-xs">\u{1F4CA} Tersedia: \${barang.kuantitiTersedia}</span>
                     <span class="\${getKategoriColor(barang.kategori)} text-xs px-2 py-1 rounded">
                       \${barang.kategori.charAt(0).toUpperCase() + barang.kategori.slice(1)}
                     </span>
@@ -1732,7 +2466,7 @@ function getUserBarangHTML() {
                       : 'bg-red-300 text-red-500 cursor-not-allowed'
                 }"
               >
-                \${bolehPinjam ? '📋 Buat Tempahan' : sudahDipinjam ? '✅ Ditempah' : '❌ Tidak Tersedia'}
+                \${bolehPinjam ? '\u{1F4CB} Buat Tempahan' : sudahDipinjam ? '\u2705 Ditempah' : '\u274C Tidak Tersedia'}
               </button>
             </div>
           </div>
@@ -1742,11 +2476,11 @@ function getUserBarangHTML() {
 
     // Load barang on page load
     loadBarang();
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getUserBarangHTML, "getUserBarangHTML");
 function getUserProfileHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -1755,7 +2489,7 @@ function getUserProfileHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profil - User</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1770,10 +2504,10 @@ function getUserProfileHTML() {
             onclick="window.location.href='/user/dashboard'"
             class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors"
           >
-            ← Dashboard
+            \u2190 Dashboard
           </button>
           <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-            <span class="text-xs font-medium">👤 PROFIL</span>
+            <span class="text-xs font-medium">\u{1F464} PROFIL</span>
           </div>
         </div>
         <button 
@@ -1784,7 +2518,7 @@ function getUserProfileHTML() {
         </button>
       </div>
       <div class="text-center">
-        <h1 class="text-xl font-bold text-gray-900">👤 Maklumat Peribadi</h1>
+        <h1 class="text-xl font-bold text-gray-900">\u{1F464} Maklumat Peribadi</h1>
         <p class="text-gray-600 text-sm mt-1">Kemaskini maklumat profil anda</p>
       </div>
     </div>
@@ -1793,7 +2527,7 @@ function getUserProfileHTML() {
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
           <div class="bg-blue-100 p-3 rounded-full">
-            <span class="text-blue-600 text-lg">👤</span>
+            <span class="text-blue-600 text-lg">\u{1F464}</span>
           </div>
           <div>
             <h2 class="font-semibold text-gray-900 text-sm" id="userName">Loading...</h2>
@@ -1804,7 +2538,7 @@ function getUserProfileHTML() {
           onclick="alert('Edit profile feature coming soon!')"
           class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
         >
-          ✏️ Edit Profil
+          \u270F\uFE0F Edit Profil
         </button>
       </div>
 
@@ -1818,19 +2552,19 @@ function getUserProfileHTML() {
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div class="flex items-start gap-3">
         <div class="bg-blue-100 p-2 rounded-lg">
-          <span class="text-blue-600 text-sm">💡</span>
+          <span class="text-blue-600 text-sm">\u{1F4A1}</span>
         </div>
         <div>
           <h4 class="font-semibold text-blue-800 text-sm mb-2">Maklumat Profil</h4>
           <ul class="text-blue-700 text-xs space-y-1">
-            <li>• Maklumat profil digunakan untuk proses pinjaman barang</li>
-            <li>• Pastikan maklumat anda sentiasa dikemaskini</li>
+            <li>\u2022 Maklumat profil digunakan untuk proses pinjaman barang</li>
+            <li>\u2022 Pastikan maklumat anda sentiasa dikemaskini</li>
           </ul>
         </div>
       </div>
     </div>
 
-    ${getUserBottomNavHTML('profile')}
+    ${getUserBottomNavHTML("profile")}
   </div>
   <script>
     // Fetch user profile from D1
@@ -1900,11 +2634,11 @@ function getUserProfileHTML() {
         window.location.href = '/login';
       }
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getUserProfileHTML, "getUserProfileHTML");
 function getUserSejarahHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -1913,7 +2647,7 @@ function getUserSejarahHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sejarah - User</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -1928,10 +2662,10 @@ function getUserSejarahHTML() {
             onclick="window.location.href='/user/dashboard'"
             class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors"
           >
-            ← Dashboard
+            \u2190 Dashboard
           </button>
           <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-            <span class="text-xs font-medium">📊 SEJARAH</span>
+            <span class="text-xs font-medium">\u{1F4CA} SEJARAH</span>
           </div>
         </div>
         <button 
@@ -1942,7 +2676,7 @@ function getUserSejarahHTML() {
         </button>
       </div>
       <div class="text-center">
-        <h1 class="text-xl font-bold text-gray-900">📊 Sejarah Tempahan</h1>
+        <h1 class="text-xl font-bold text-gray-900">\u{1F4CA} Sejarah Tempahan</h1>
         <p class="text-gray-600 text-sm mt-1">Lihat semua tempahan dan status terkini</p>
       </div>
     </div>
@@ -1971,19 +2705,19 @@ function getUserSejarahHTML() {
     </div>
 
     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-      <h2 class="font-semibold text-gray-900 text-sm mb-4">📋 Senarai Tempahan</h2>
+      <h2 class="font-semibold text-gray-900 text-sm mb-4">\u{1F4CB} Senarai Tempahan</h2>
       <div class="space-y-3">
         <div class="border border-yellow-200 bg-yellow-50 rounded-lg p-3">
           <div class="flex justify-between items-start mb-2">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="text-lg">💻</span>
+                <span class="text-lg">\u{1F4BB}</span>
                 <h3 class="font-semibold text-gray-900 text-sm">Laptop Dell XPS 13</h3>
               </div>
-              <p class="text-gray-600 text-xs">📍 Makmal Komputer 1</p>
+              <p class="text-gray-600 text-xs">\u{1F4CD} Makmal Komputer 1</p>
             </div>
             <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded border border-yellow-200 font-medium">
-              ⏳ Menunggu
+              \u23F3 Menunggu
             </span>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs">
@@ -2002,13 +2736,13 @@ function getUserSejarahHTML() {
           <div class="flex justify-between items-start mb-2">
             <div class="flex-1">
               <div class="flex items-center gap-2 mb-1">
-                <span class="text-lg">📷</span>
+                <span class="text-lg">\u{1F4F7}</span>
                 <h3 class="font-semibold text-gray-900 text-sm">Kamera Canon EOS R6</h3>
               </div>
-              <p class="text-gray-600 text-xs">📍 Unit Media</p>
+              <p class="text-gray-600 text-xs">\u{1F4CD} Unit Media</p>
             </div>
             <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded border border-green-200 font-medium">
-              ✅ Diluluskan
+              \u2705 Diluluskan
             </span>
           </div>
           <div class="grid grid-cols-2 gap-2 text-xs">
@@ -2023,7 +2757,7 @@ function getUserSejarahHTML() {
           </div>
           <div class="p-2 bg-green-100 border border-green-200 rounded-lg mt-2">
             <p class="text-green-700 text-xs">
-              ✅ <strong>Diluluskan oleh:</strong> Ahmad (Staff ICT)
+              \u2705 <strong>Diluluskan oleh:</strong> Ahmad (Staff ICT)
             </p>
           </div>
         </div>
@@ -2033,20 +2767,20 @@ function getUserSejarahHTML() {
     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
       <div class="flex items-start gap-3">
         <div class="bg-blue-100 p-2 rounded-lg">
-          <span class="text-blue-600 text-sm">💡</span>
+          <span class="text-blue-600 text-sm">\u{1F4A1}</span>
         </div>
         <div>
           <h4 class="font-semibold text-blue-800 text-sm mb-2">Maklumat Status</h4>
           <ul class="text-blue-700 text-xs space-y-1">
-            <li>• <strong>Menunggu</strong> - Staff ICT sedang proses permohonan</li>
-            <li>• <strong>Diluluskan</strong> - Tempahan diluluskan, boleh ambil barang</li>
-            <li>• <strong>Ditolak</strong> - Tempahan tidak diluluskan</li>
+            <li>\u2022 <strong>Menunggu</strong> - Staff ICT sedang proses permohonan</li>
+            <li>\u2022 <strong>Diluluskan</strong> - Tempahan diluluskan, boleh ambil barang</li>
+            <li>\u2022 <strong>Ditolak</strong> - Tempahan tidak diluluskan</li>
           </ul>
         </div>
       </div>
     </div>
 
-    ${getUserBottomNavHTML('sejarah')}
+    ${getUserBottomNavHTML("sejarah")}
   </div>
   <script>
     function handleLogout() {
@@ -2055,11 +2789,11 @@ function getUserSejarahHTML() {
         window.location.href = '/login';
       }
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getUserSejarahHTML, "getUserSejarahHTML");
 function getUserTempahanHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -2068,7 +2802,7 @@ function getUserTempahanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tempahan - User</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -2079,14 +2813,14 @@ function getUserTempahanHTML() {
     <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div class="text-center sm:text-left">
-          <h1 class="text-xl sm:text-2xl font-bold text-gray-900">📋 Buat Tempahan Baru</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900">\u{1F4CB} Buat Tempahan Baru</h1>
           <p class="text-gray-600 text-sm">Pinjam barang ICT ILKKM</p>
         </div>
         <button 
           onclick="window.location.href='/user/dashboard'"
           class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
         >
-          ← Kembali
+          \u2190 Kembali
         </button>
       </div>
     </div>
@@ -2098,9 +2832,9 @@ function getUserTempahanHTML() {
           <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Barang *</label>
           <select id="barangSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
             <option value="">-- Sila pilih barang --</option>
-            <option value="1">💻 Laptop Dell XPS 13 - Makmal Komputer 1</option>
-            <option value="2">📽️ Projector Epson EB-X41 - Bilik Media</option>
-            <option value="3">📷 Kamera Canon EOS R6 - Unit Media</option>
+            <option value="1">\u{1F4BB} Laptop Dell XPS 13 - Makmal Komputer 1</option>
+            <option value="2">\u{1F4FD}\uFE0F Projector Epson EB-X41 - Bilik Media</option>
+            <option value="3">\u{1F4F7} Kamera Canon EOS R6 - Unit Media</option>
           </select>
         </div>
 
@@ -2124,21 +2858,21 @@ function getUserTempahanHTML() {
           onclick="handleHantarTempahan()"
           class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
         >
-          📋 Hantar Tempahan untuk Kelulusan
+          \u{1F4CB} Hantar Tempahan untuk Kelulusan
         </button>
       </div>
     </div>
 
     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-20">
-      <h3 class="font-semibold text-yellow-800 text-sm mb-3">💡 Makluman Penting</h3>
+      <h3 class="font-semibold text-yellow-800 text-sm mb-3">\u{1F4A1} Makluman Penting</h3>
       <ul class="text-yellow-700 text-xs space-y-2">
-        <li>• <strong>Tempoh maksimum:</strong> 7 hari</li>
-        <li>• <strong>Kelulusan:</strong> Diperlukan dari Staff ICT</li>
-        <li>• <strong>Waktu ambil:</strong> 8:30 PG - 5:30 PTG</li>
+        <li>\u2022 <strong>Tempoh maksimum:</strong> 7 hari</li>
+        <li>\u2022 <strong>Kelulusan:</strong> Diperlukan dari Staff ICT</li>
+        <li>\u2022 <strong>Waktu ambil:</strong> 8:30 PG - 5:30 PTG</li>
       </ul>
     </div>
 
-    ${getUserBottomNavHTML('tempahan')}
+    ${getUserBottomNavHTML("tempahan")}
   </div>
 
   <script>
@@ -2152,18 +2886,14 @@ function getUserTempahanHTML() {
         return;
       }
       
-      alert('✅ TEMPAHAN BERJAYA DIBUAT!\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT\\n\\nStaff ICT akan semak tempahan anda dalam 24 jam.');
+      alert('\u2705 TEMPAHAN BERJAYA DIBUAT!\\n\\nStatus: MENUNGGU KELULUSAN STAFF ICT\\n\\nStaff ICT akan semak tempahan anda dalam 24 jam.');
       window.location.href = '/user/sejarah';
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
-// ============================================
-// STAFF-ICT PAGES
-// ============================================
-
+__name(getUserTempahanHTML, "getUserTempahanHTML");
 function getStaffDashboardHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -2172,7 +2902,7 @@ function getStaffDashboardHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Staff ICT Dashboard - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -2186,7 +2916,7 @@ function getStaffDashboardHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full flex items-center gap-1">
-              <span class="text-sm">🏠</span>
+              <span class="text-sm">\u{1F3E0}</span>
               <span class="text-xs font-medium">STAFF ICT</span>
             </div>
           </div>
@@ -2231,7 +2961,7 @@ function getStaffDashboardHTML() {
       <!-- Tempahan Perlu Kelulusan -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold text-gray-900 text-sm">📋 Tempahan Perlu Kelulusan</h2>
+          <h2 class="font-semibold text-gray-900 text-sm">\u{1F4CB} Tempahan Perlu Kelulusan</h2>
           <div class="flex items-center gap-2">
             <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full" id="countMenunggu">3 menunggu</span>
             <button onclick="window.location.href='/staff-ict/kelulusan'" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
@@ -2247,7 +2977,7 @@ function getStaffDashboardHTML() {
       <div class="bg-white rounded-xl shadow-sm p-4 mb-20">
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
-            <h2 class="font-semibold text-gray-900 text-sm">📦 Urus Status Barang</h2>
+            <h2 class="font-semibold text-gray-900 text-sm">\u{1F4E6} Urus Status Barang</h2>
             <button onclick="window.location.href='/staff-ict/barang'" class="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600 transition-colors">
               Urus Barang
             </button>
@@ -2258,7 +2988,7 @@ function getStaffDashboardHTML() {
         <div id="barangList" class="space-y-2"></div>
       </div>
 
-      ${getStaffBottomNavHTML('dashboard')}
+      ${getStaffBottomNavHTML("dashboard")}
     </div>
   </div>
 
@@ -2345,7 +3075,7 @@ function getStaffDashboardHTML() {
           <div class="text-center py-4">
             <p class="text-gray-500 text-sm">Tiada tempahan menunggu kelulusan</p>
             <button onclick="window.location.href='/staff-ict/kelulusan'" class="text-blue-500 text-xs hover:text-blue-600 mt-2">
-              Pergi ke halaman kelulusan →
+              Pergi ke halaman kelulusan \u2192
             </button>
           </div>
         \`;
@@ -2368,10 +3098,10 @@ function getStaffDashboardHTML() {
             
             <div class="flex gap-2">
               <button onclick="handleKelulusan('\${item.id}', 'lulus')" class="flex-1 bg-green-500 text-white py-1 rounded text-xs hover:bg-green-600 transition-colors">
-                ✅ Lulus
+                \u2705 Lulus
               </button>
               <button onclick="handleKelulusan('\${item.id}', 'tolak')" class="flex-1 bg-red-500 text-white py-1 rounded text-xs hover:bg-red-600 transition-colors">
-                ❌ Tolak
+                \u274C Tolak
               </button>
             </div>
           </div>
@@ -2413,18 +3143,18 @@ function getStaffDashboardHTML() {
       
       container.innerHTML += \`
         <button onclick="window.location.href='/staff-ict/barang'" class="w-full bg-green-50 text-green-700 py-2 rounded-lg text-xs font-medium hover:bg-green-100 transition-colors">
-          Lihat Semua Barang →
+          Lihat Semua Barang \u2192
         </button>
       \`;
     }
 
     // Initialize
     loadDashboardData();
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getStaffDashboardHTML, "getStaffDashboardHTML");
 function getStaffBarangHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -2433,7 +3163,7 @@ function getStaffBarangHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Urus Barang - Staff ICT - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -2447,10 +3177,10 @@ function getStaffBarangHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors flex items-center gap-1">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📦 BARANG</span>
+              <span class="text-xs font-medium">\u{1F4E6} BARANG</span>
             </div>
           </div>
           <button onclick="handleLogKeluar()" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -2459,7 +3189,7 @@ function getStaffBarangHTML() {
         </div>
         
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📦 Urus Barang ICT</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4E6} Urus Barang ICT</h1>
           <p class="text-gray-600 text-sm mt-1">Manage inventori barang ICT ILKKM</p>
         </div>
       </div>
@@ -2494,16 +3224,16 @@ function getStaffBarangHTML() {
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h3 class="font-semibold text-yellow-800 text-sm">
-              📋 <span id="selectedCount">0</span> barang dipilih
+              \u{1F4CB} <span id="selectedCount">0</span> barang dipilih
             </h3>
             <p class="text-yellow-700 text-xs mt-1">Pilih tindakan yang ingin dilakukan</p>
           </div>
           <div class="flex gap-2">
             <button onclick="handleBulkDelete()" class="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors text-xs">
-              🗑️ Padam Dipilih
+              \u{1F5D1}\uFE0F Padam Dipilih
             </button>
             <button onclick="clearSelection()" class="bg-gray-500 text-white px-3 py-2 rounded-lg hover:bg-gray-600 transition-colors text-xs">
-              ✗ Batal Pilih
+              \u2717 Batal Pilih
             </button>
           </div>
         </div>
@@ -2574,7 +3304,7 @@ function getStaffBarangHTML() {
         <div id="barangList" class="space-y-3"></div>
       </div>
 
-      ${getStaffBottomNavHTML('barang')}
+      ${getStaffBottomNavHTML("barang")}
     </div>
   </div>
 
@@ -2760,7 +3490,7 @@ function getStaffBarangHTML() {
         filterBarang();
       } catch (error) {
         console.error('Error loading barang:', error);
-        document.getElementById('barangList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">❌</div><p class="text-red-500 text-sm">Error memuat barang. Sila refresh.</p></div>';
+        document.getElementById('barangList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">\u274C</div><p class="text-red-500 text-sm">Error memuat barang. Sila refresh.</p></div>';
       }
     }
 
@@ -2772,13 +3502,13 @@ function getStaffBarangHTML() {
 
     function getGambar(kategori) {
       const icons = {
-        elektronik: '💻',
-        fotografi: '📷',
-        'alat-tulis': '✏️',
-        buku: '📚',
-        audio: '🎤'
+        elektronik: '\u{1F4BB}',
+        fotografi: '\u{1F4F7}',
+        'alat-tulis': '\u270F\uFE0F',
+        buku: '\u{1F4DA}',
+        audio: '\u{1F3A4}'
       };
-      return icons[kategori] || '📦';
+      return icons[kategori] || '\u{1F4E6}';
     }
 
     function getKategoriColor(kategori) {
@@ -2856,7 +3586,7 @@ function getStaffBarangHTML() {
       if (barangList.length === 0) {
         container.innerHTML = \`
           <div class="text-center py-8">
-            <div class="text-4xl mb-2">📦</div>
+            <div class="text-4xl mb-2">\u{1F4E6}</div>
             <p class="text-gray-500 text-sm">Tiada barang ditemui</p>
             <p class="text-gray-400 text-xs mt-1">Cuba ubah carian atau filter</p>
           </div>
@@ -2890,11 +3620,11 @@ function getStaffBarangHTML() {
               </div>
               <div class="bg-gray-50 rounded p-2">
                 <span class="text-gray-500">Lokasi:</span>
-                <p class="text-gray-700 mt-1">📍 \${barang.lokasi}</p>
+                <p class="text-gray-700 mt-1">\u{1F4CD} \${barang.lokasi}</p>
               </div>
               <div class="bg-gray-50 rounded p-2">
                 <span class="text-gray-500">Tersedia:</span>
-                <p class="text-gray-700 mt-1">📊 \${barang.kuantitiTersedia}</p>
+                <p class="text-gray-700 mt-1">\u{1F4CA} \${barang.kuantitiTersedia}</p>
               </div>
               <div class="bg-gray-50 rounded p-2">
                 <span class="text-gray-500">Kategori:</span>
@@ -2908,7 +3638,7 @@ function getStaffBarangHTML() {
 
             \${barang.nota ? \`
               <div class="bg-yellow-50 border border-yellow-200 rounded p-2">
-                <p class="text-yellow-700 text-xs">📝 \${barang.nota}</p>
+                <p class="text-yellow-700 text-xs">\u{1F4DD} \${barang.nota}</p>
               </div>
             \` : ''}
 
@@ -2927,7 +3657,7 @@ function getStaffBarangHTML() {
                 <button onclick="openModalEdit('\${barang.id}')" class="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
                   Edit
                 </button>
-                <button onclick="handleHapusBarang('\${barang.id}', '\${barang.namaBarang.replace(/'/g, \"&apos;\")}')" class="flex-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors">
+                <button onclick="handleHapusBarang('\${barang.id}', '\${barang.namaBarang.replace(/'/g, "&apos;")}')" class="flex-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors">
                   Padam
                 </button>
               </div>
@@ -2995,12 +3725,12 @@ function getStaffBarangHTML() {
           throw new Error(error.error || 'Failed to delete barang');
         }
 
-        alert(\`✅ \${selectedBarang.length} barang berjaya dipadam!\`);
+        alert(\`\u2705 \${selectedBarang.length} barang berjaya dipadam!\`);
         clearSelection();
         await loadBarang();
       } catch (error) {
         console.error('Error bulk deleting barang:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3032,7 +3762,7 @@ function getStaffBarangHTML() {
         await loadBarang();
       } catch (error) {
         console.error('Error updating status:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3051,13 +3781,13 @@ function getStaffBarangHTML() {
           throw new Error(error.error || 'Failed to delete barang');
         }
 
-        alert('✅ Barang berjaya dipadam!');
+        alert('\u2705 Barang berjaya dipadam!');
         selectedBarang = selectedBarang.filter(itemId => itemId !== id);
         updateBulkActions();
         await loadBarang();
       } catch (error) {
         console.error('Error deleting barang:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3116,12 +3846,12 @@ function getStaffBarangHTML() {
           throw new Error(error.error || 'Failed to add barang');
         }
 
-        alert('✅ Barang baru berjaya ditambah!');
+        alert('\u2705 Barang baru berjaya ditambah!');
         closeModalTambah();
         await loadBarang();
       } catch (error) {
         console.error('Error adding barang:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3189,22 +3919,22 @@ function getStaffBarangHTML() {
           throw new Error(error.error || 'Failed to update barang');
         }
 
-        alert('✅ Barang berjaya dikemaskini!');
+        alert('\u2705 Barang berjaya dikemaskini!');
         closeModalEdit();
         await loadBarang();
       } catch (error) {
         console.error('Error updating barang:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
     // Initialize - Load barang from D1
     loadBarang();
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getStaffBarangHTML, "getStaffBarangHTML");
 function getStaffKelulusanHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -3213,7 +3943,7 @@ function getStaffKelulusanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Urus Kelulusan - Staff ICT - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -3227,10 +3957,10 @@ function getStaffKelulusanHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors flex items-center gap-1">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📋 KELULUSAN</span>
+              <span class="text-xs font-medium">\u{1F4CB} KELULUSAN</span>
             </div>
           </div>
           <button onclick="handleLogKeluar()" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -3239,7 +3969,7 @@ function getStaffKelulusanHTML() {
         </div>
         
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📋 Urus Kelulusan</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4CB} Urus Kelulusan</h1>
           <p class="text-gray-600 text-sm mt-1">Luluskan atau tolak tempahan barang ICT</p>
         </div>
       </div>
@@ -3298,14 +4028,14 @@ function getStaffKelulusanHTML() {
       <!-- Senarai Tempahan -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-20">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="font-semibold text-gray-900 text-sm">📋 Senarai Tempahan</h2>
+          <h2 class="font-semibold text-gray-900 text-sm">\u{1F4CB} Senarai Tempahan</h2>
           <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full" id="countTempahan">4 ditemui</span>
         </div>
         
         <div id="tempahanList" class="space-y-3"></div>
       </div>
 
-      ${getStaffBottomNavHTML('kelulusan')}
+      ${getStaffBottomNavHTML("kelulusan")}
     </div>
   </div>
 
@@ -3364,7 +4094,7 @@ function getStaffKelulusanHTML() {
         filterTempahan();
       } catch (error) {
         console.error('Error loading tempahan:', error);
-        document.getElementById('tempahanList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">❌</div><p class="text-red-500 text-sm">Error: ' + error.message + '</p></div>';
+        document.getElementById('tempahanList').innerHTML = '<div class="text-center py-8"><div class="text-4xl mb-2">\u274C</div><p class="text-red-500 text-sm">Error: ' + error.message + '</p></div>';
       }
     }
 
@@ -3394,11 +4124,11 @@ function getStaffKelulusanHTML() {
 
     function getStatusIcon(status) {
       const icons = {
-        menunggu: '⏳',
-        diluluskan: '✅',
-        ditolak: '❌'
+        menunggu: '\u23F3',
+        diluluskan: '\u2705',
+        ditolak: '\u274C'
       };
-      return icons[status] || '📋';
+      return icons[status] || '\u{1F4CB}';
     }
 
     function getKategoriColor(kategori) {
@@ -3479,11 +4209,11 @@ function getStaffKelulusanHTML() {
           throw new Error(error.error || 'Failed to approve');
         }
 
-        alert('✅ Tempahan berjaya diluluskan!');
+        alert('\u2705 Tempahan berjaya diluluskan!');
         await loadTempahan();
       } catch (error) {
         console.error('Error approving tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3520,12 +4250,12 @@ function getStaffKelulusanHTML() {
           throw new Error(error.error || 'Failed to reject');
         }
 
-        alert('❌ Tempahan berjaya ditolak!');
+        alert('\u274C Tempahan berjaya ditolak!');
         closeModalTolak();
         await loadTempahan();
       } catch (error) {
         console.error('Error rejecting tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3552,7 +4282,7 @@ function getStaffKelulusanHTML() {
       if (tempahanList.length === 0) {
         container.innerHTML = \`
           <div class="text-center py-8">
-            <div class="text-4xl mb-2">📋</div>
+            <div class="text-4xl mb-2">\u{1F4CB}</div>
             <p class="text-gray-500 text-sm">Tiada tempahan ditemui</p>
             <p class="text-gray-400 text-xs mt-1">Cuba ubah carian atau filter anda</p>
           </div>
@@ -3569,8 +4299,8 @@ function getStaffKelulusanHTML() {
                 <p class="text-gray-600 text-xs mt-1">
                   <strong>Pemohon:</strong> \${item.namaPemohon} (\${item.emailPemohon || 'N/A'})
                 </p>
-                <p class="text-gray-500 text-xs mt-1">📍 \${item.lokasi || 'N/A'}</p>
-                \${item.tujuan ? \`<p class="text-gray-500 text-xs mt-1">📝 \${item.tujuan}</p>\` : ''}
+                <p class="text-gray-500 text-xs mt-1">\u{1F4CD} \${item.lokasi || 'N/A'}</p>
+                \${item.tujuan ? \`<p class="text-gray-500 text-xs mt-1">\u{1F4DD} \${item.tujuan}</p>\` : ''}
               </div>
               <div class="flex flex-col items-end gap-1">
                 <span class="\${getStatusColor(item.status)} text-xs px-2 py-1 rounded border font-medium">
@@ -3602,7 +4332,7 @@ function getStaffKelulusanHTML() {
             \${item.status === 'Diluluskan' && item.diluluskanOleh ? \`
               <div class="p-2 bg-green-50 border border-green-200 rounded-lg">
                 <p class="text-green-700 text-xs">
-                  ✅ <strong>Diluluskan oleh:</strong> \${item.diluluskanOleh} pada \${formatTarikhMasa(item.tarikhKelulusan)}
+                  \u2705 <strong>Diluluskan oleh:</strong> \${item.diluluskanOleh} pada \${formatTarikhMasa(item.tarikhKelulusan)}
                 </p>
               </div>
             \` : ''}
@@ -3610,7 +4340,7 @@ function getStaffKelulusanHTML() {
             \${item.status === 'Ditolak' && item.catatanKelulusan ? \`
               <div class="p-2 bg-red-50 border border-red-200 rounded-lg">
                 <p class="text-red-700 text-xs">
-                  ❌ <strong>Ditolak:</strong> \${item.catatanKelulusan}
+                  \u274C <strong>Ditolak:</strong> \${item.catatanKelulusan}
                 </p>
                 \${item.diluluskanOleh ? \`
                   <p class="text-red-600 text-xs mt-1">
@@ -3623,10 +4353,10 @@ function getStaffKelulusanHTML() {
             \${item.status === 'Pending' ? \`
               <div class="flex gap-2">
                 <button onclick="handleLulusTempahan('\${item.id}')" class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
-                  ✅ Luluskan
+                  \u2705 Luluskan
                 </button>
                 <button onclick="openModalTolak('\${item.id}')" class="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors text-sm">
-                  ❌ Tolak
+                  \u274C Tolak
                 </button>
               </div>
             \` : ''}
@@ -3654,11 +4384,11 @@ function getStaffKelulusanHTML() {
           throw new Error(error.error || 'Failed to approve');
         }
 
-        alert('✅ Tempahan berjaya diluluskan! Kuantiti barang telah dikurangkan.');
+        alert('\u2705 Tempahan berjaya diluluskan! Kuantiti barang telah dikurangkan.');
         await loadTempahan();
       } catch (error) {
         console.error('Error approving tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
@@ -3711,22 +4441,22 @@ function getStaffKelulusanHTML() {
           throw new Error(error.error || 'Failed to reject');
         }
 
-        alert('❌ Tempahan berjaya ditolak!');
+        alert('\u274C Tempahan berjaya ditolak!');
         closeModalTolak();
         await loadTempahan();
       } catch (error) {
         console.error('Error rejecting tempahan:', error);
-        alert('❌ Error: ' + error.message);
+        alert('\u274C Error: ' + error.message);
       }
     }
 
     // Initialize
     loadTempahan();
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getStaffKelulusanHTML, "getStaffKelulusanHTML");
 function getStaffProfileHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -3735,7 +4465,7 @@ function getStaffProfileHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profil Staff ICT - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -3749,10 +4479,10 @@ function getStaffProfileHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors flex items-center gap-1">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full flex items-center gap-1">
-              <span class="text-sm">👤</span>
+              <span class="text-sm">\u{1F464}</span>
               <span class="text-xs font-medium">PROFIL</span>
             </div>
           </div>
@@ -3762,7 +4492,7 @@ function getStaffProfileHTML() {
         </div>
         
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">👤 Profil Staff ICT</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F464} Profil Staff ICT</h1>
           <p class="text-gray-600 text-sm mt-1">Maklumat peribadi dan akaun</p>
         </div>
       </div>
@@ -3770,9 +4500,9 @@ function getStaffProfileHTML() {
       <!-- Profile Card -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="font-semibold text-gray-900 text-sm">📝 Maklumat Peribadi</h2>
+          <h2 class="font-semibold text-gray-900 text-sm">\u{1F4DD} Maklumat Peribadi</h2>
           <button id="btnEdit" onclick="toggleEdit()" class="bg-blue-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-blue-600 transition-colors">
-            ✏️ Edit Profil
+            \u270F\uFE0F Edit Profil
           </button>
         </div>
 
@@ -3848,10 +4578,10 @@ function getStaffProfileHTML() {
           <!-- Save/Cancel buttons (hidden by default) -->
           <div id="editButtons" class="hidden flex gap-2">
             <button onclick="cancelEdit()" class="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium">
-              ❌ Batal
+              \u274C Batal
             </button>
             <button onclick="saveProfile()" class="flex-1 bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium">
-              💾 Simpan
+              \u{1F4BE} Simpan
             </button>
           </div>
         </div>
@@ -3859,7 +4589,7 @@ function getStaffProfileHTML() {
 
       <!-- Quick Stats -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">📈 Statistik Staff ICT</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4C8} Statistik Staff ICT</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="text-center">
             <div class="text-lg font-bold text-blue-600">12</div>
@@ -3886,26 +4616,26 @@ function getStaffProfileHTML() {
 
       <!-- Account Actions -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">⚙️ Tindakan Akaun</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u2699\uFE0F Tindakan Akaun</h3>
         <div class="space-y-2">
           <button class="w-full bg-blue-50 text-blue-700 py-2 px-3 rounded-lg text-xs font-medium text-left hover:bg-blue-100 transition-colors flex items-center justify-between">
-            <span>🔐 Tukar Kata Laluan</span>
-            <span>→</span>
+            <span>\u{1F510} Tukar Kata Laluan</span>
+            <span>\u2192</span>
           </button>
           <button class="w-full bg-yellow-50 text-yellow-700 py-2 px-3 rounded-lg text-xs font-medium text-left hover:bg-yellow-100 transition-colors flex items-center justify-between">
-            <span>📧 Tetapan Notifikasi</span>
-            <span>→</span>
+            <span>\u{1F4E7} Tetapan Notifikasi</span>
+            <span>\u2192</span>
           </button>
           <button class="w-full bg-red-50 text-red-700 py-2 px-3 rounded-lg text-xs font-medium text-left hover:bg-red-100 transition-colors flex items-center justify-between">
-            <span>🚫 Tutup Akaun</span>
-            <span>→</span>
+            <span>\u{1F6AB} Tutup Akaun</span>
+            <span>\u2192</span>
           </button>
         </div>
       </div>
 
       <!-- Recent Activity -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">📋 Aktiviti Terkini</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CB} Aktiviti Terkini</h3>
         <div class="space-y-3">
           <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
@@ -3941,22 +4671,22 @@ function getStaffProfileHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Maklumat Profil Staff ICT</h4>
             <ul class="text-blue-700 text-xs space-y-1">
-              <li>• <strong>No. Staf</strong> - Pengenalan unik untuk staff ICT</li>
-              <li>• <strong>Jabatan</strong> - Bahagian tempat anda bertugas</li>
-              <li>• <strong>Status Aktif</strong> - Menunjukkan akaun aktif dalam sistem</li>
-              <li>• <strong>Edit Profil</strong> - Kemaskini maklumat peribadi jika perlu</li>
-              <li>• <strong>Statistik</strong> - Prestasi dan aktiviti terkini</li>
+              <li>\u2022 <strong>No. Staf</strong> - Pengenalan unik untuk staff ICT</li>
+              <li>\u2022 <strong>Jabatan</strong> - Bahagian tempat anda bertugas</li>
+              <li>\u2022 <strong>Status Aktif</strong> - Menunjukkan akaun aktif dalam sistem</li>
+              <li>\u2022 <strong>Edit Profil</strong> - Kemaskini maklumat peribadi jika perlu</li>
+              <li>\u2022 <strong>Statistik</strong> - Prestasi dan aktiviti terkini</li>
             </ul>
           </div>
         </div>
       </div>
 
-      ${getStaffBottomNavHTML('profile')}
+      ${getStaffBottomNavHTML("profile")}
     </div>
   </div>
 
@@ -4036,11 +4766,11 @@ function getStaffProfileHTML() {
       
       alert('Profil berjaya dikemaskini!');
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
+__name(getStaffProfileHTML, "getStaffProfileHTML");
 function getStaffLaporanKeseluruhanHTML() {
   return `<!DOCTYPE html>
 <html lang="ms">
@@ -4049,7 +4779,7 @@ function getStaffLaporanKeseluruhanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan Keseluruhan - Staff ICT - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -4063,10 +4793,10 @@ function getStaffLaporanKeseluruhanHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors flex items-center gap-1">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📊 LAPORAN</span>
+              <span class="text-xs font-medium">\u{1F4CA} LAPORAN</span>
             </div>
           </div>
           <button onclick="handleLogKeluar()" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -4075,7 +4805,7 @@ function getStaffLaporanKeseluruhanHTML() {
         </div>
         
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📈 Laporan Keseluruhan</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4C8} Laporan Keseluruhan</h1>
           <p class="text-gray-600 text-sm mt-1">Statistik menyeluruh sistem tempahan</p>
         </div>
 
@@ -4092,7 +4822,7 @@ function getStaffLaporanKeseluruhanHTML() {
 
       <!-- Quick Stats -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">📈 Statistik Ringkas</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">\u{1F4C8} Statistik Ringkas</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-green-50 rounded-lg p-3 text-center">
             <div class="text-lg font-bold text-green-600">45</div>
@@ -4119,42 +4849,42 @@ function getStaffLaporanKeseluruhanHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-3 rounded-lg">
-                <span class="text-blue-600 text-lg">📈</span>
+                <span class="text-blue-600 text-lg">\u{1F4C8}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Keseluruhan</h3>
                 <p class="text-gray-600 text-xs">Statistik menyeluruh sistem</p>
               </div>
             </div>
-            <span class="text-blue-400">●</span>
+            <span class="text-blue-400">\u25CF</span>
           </div>
         </button>
         <button onclick="window.location.href='/staff-ict/laporan/barang'" class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-gray-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-3 rounded-lg">
-                <span class="text-green-600 text-lg">📦</span>
+                <span class="text-green-600 text-lg">\u{1F4E6}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Barang</h3>
                 <p class="text-gray-600 text-xs">Analisis penggunaan barang</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
         <button onclick="window.location.href='/staff-ict/laporan/tempahan'" class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-gray-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-purple-100 p-3 rounded-lg">
-                <span class="text-purple-600 text-lg">📄</span>
+                <span class="text-purple-600 text-lg">\u{1F4C4}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Tempahan</h3>
                 <p class="text-gray-600 text-xs">Laporan tempahan sistem</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
       </div>
@@ -4163,14 +4893,14 @@ function getStaffLaporanKeseluruhanHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Cara Menggunakan Laporan</h4>
             <ul class="text-blue-700 text-xs space-y-1">
-              <li>• <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
-              <li>• <strong>Barang</strong> - Analisis penggunaan inventori</li>
-              <li>• <strong>Tempahan</strong> - Template laporan sedia ada</li>
+              <li>\u2022 <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
+              <li>\u2022 <strong>Barang</strong> - Analisis penggunaan inventori</li>
+              <li>\u2022 <strong>Tempahan</strong> - Template laporan sedia ada</li>
             </ul>
           </div>
         </div>
@@ -4185,7 +4915,7 @@ function getStaffLaporanKeseluruhanHTML() {
               <p class="text-lg font-bold text-gray-900">234</p>
             </div>
             <div class="bg-blue-100 p-2 rounded-lg">
-              <span class="text-blue-600 text-sm">📋</span>
+              <span class="text-blue-600 text-sm">\u{1F4CB}</span>
             </div>
           </div>
           <p class="text-gray-500 text-xs mt-1">Semua tempahan</p>
@@ -4198,7 +4928,7 @@ function getStaffLaporanKeseluruhanHTML() {
               <p class="text-lg font-bold text-gray-900">189</p>
             </div>
             <div class="bg-green-100 p-2 rounded-lg">
-              <span class="text-green-600 text-sm">✅</span>
+              <span class="text-green-600 text-sm">\u2705</span>
             </div>
           </div>
           <p class="text-gray-500 text-xs mt-1">Diluluskan</p>
@@ -4211,7 +4941,7 @@ function getStaffLaporanKeseluruhanHTML() {
               <p class="text-lg font-bold text-gray-900">45</p>
             </div>
             <div class="bg-red-100 p-2 rounded-lg">
-              <span class="text-red-600 text-sm">❌</span>
+              <span class="text-red-600 text-sm">\u274C</span>
             </div>
           </div>
           <p class="text-gray-500 text-xs mt-1">Tidak diluluskan</p>
@@ -4224,7 +4954,7 @@ function getStaffLaporanKeseluruhanHTML() {
               <p class="text-lg font-bold text-gray-900">80.8%</p>
             </div>
             <div class="bg-purple-100 p-2 rounded-lg">
-              <span class="text-purple-600 text-sm">📊</span>
+              <span class="text-purple-600 text-sm">\u{1F4CA}</span>
             </div>
           </div>
           <p class="text-gray-500 text-xs mt-1">Nisbah berjaya</p>
@@ -4233,13 +4963,13 @@ function getStaffLaporanKeseluruhanHTML() {
 
       <!-- Additional Insights -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">💡 Analisis Tambahan</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4A1} Analisis Tambahan</h2>
         
         <div class="space-y-3">
           <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-2 rounded-lg">
-                <span class="text-blue-600 text-sm">🏆</span>
+                <span class="text-blue-600 text-sm">\u{1F3C6}</span>
               </div>
               <div>
                 <p class="text-xs font-medium text-gray-900">Barang Paling Popular</p>
@@ -4251,7 +4981,7 @@ function getStaffLaporanKeseluruhanHTML() {
           <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-2 rounded-lg">
-                <span class="text-green-600 text-sm">⏰</span>
+                <span class="text-green-600 text-sm">\u23F0</span>
               </div>
               <div>
                 <p class="text-xs font-medium text-gray-900">Waktu Permintaan Tinggi</p>
@@ -4264,9 +4994,9 @@ function getStaffLaporanKeseluruhanHTML() {
 
       <!-- Trend Chart Placeholder -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📈 Trend Tempahan</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4C8} Trend Tempahan</h2>
         <div class="bg-gray-50 rounded-lg p-8 text-center">
-          <div class="text-4xl mb-3">📊</div>
+          <div class="text-4xl mb-3">\u{1F4CA}</div>
           <p class="text-gray-600 text-sm mb-2">Graf trend tempahan</p>
           <p class="text-gray-500 text-xs">Data visualisasi akan dipaparkan di sini</p>
         </div>
@@ -4274,39 +5004,39 @@ function getStaffLaporanKeseluruhanHTML() {
 
       <!-- Category Breakdown -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📦 Taburan Mengikut Kategori</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4E6} Taburan Mengikut Kategori</h2>
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-blue-500 text-sm">💻</span>
+              <span class="text-blue-500 text-sm">\u{1F4BB}</span>
               <span class="text-gray-700 text-sm">Laptop & Komputer</span>
             </div>
             <span class="text-gray-900 text-sm font-medium">45%</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-green-500 text-sm">📱</span>
+              <span class="text-green-500 text-sm">\u{1F4F1}</span>
               <span class="text-gray-700 text-sm">Tablet & Mobile</span>
             </div>
             <span class="text-gray-900 text-sm font-medium">25%</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-purple-500 text-sm">🎥</span>
+              <span class="text-purple-500 text-sm">\u{1F3A5}</span>
               <span class="text-gray-700 text-sm">AV Equipment</span>
             </div>
             <span class="text-gray-900 text-sm font-medium">15%</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-orange-500 text-sm">🔌</span>
+              <span class="text-orange-500 text-sm">\u{1F50C}</span>
               <span class="text-gray-700 text-sm">Aksesori</span>
             </div>
             <span class="text-gray-900 text-sm font-medium">10%</span>
           </div>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-red-500 text-sm">🖨️</span>
+              <span class="text-red-500 text-sm">\u{1F5A8}\uFE0F</span>
               <span class="text-gray-700 text-sm">Printer & Scanner</span>
             </div>
             <span class="text-gray-900 text-sm font-medium">5%</span>
@@ -4318,21 +5048,21 @@ function getStaffLaporanKeseluruhanHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-20">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Cara Menggunakan Laporan</h4>
             <ul class="text-blue-700 text-xs space-y-1">
-              <li>• <strong>Period Selector</strong> - Pilih tempoh masa untuk analisis</li>
-              <li>• <strong>Stats Cards</strong> - Overview ringkas prestasi sistem</li>
-              <li>• <strong>Trend Chart</strong> - Visualisasi data dari masa ke masa</li>
-              <li>• <strong>Category Breakdown</strong> - Analisis mengikut jenis barang</li>
+              <li>\u2022 <strong>Period Selector</strong> - Pilih tempoh masa untuk analisis</li>
+              <li>\u2022 <strong>Stats Cards</strong> - Overview ringkas prestasi sistem</li>
+              <li>\u2022 <strong>Trend Chart</strong> - Visualisasi data dari masa ke masa</li>
+              <li>\u2022 <strong>Category Breakdown</strong> - Analisis mengikut jenis barang</li>
             </ul>
           </div>
         </div>
       </div>
 
-      ${getStaffBottomNavHTML('laporan')}
+      ${getStaffBottomNavHTML("laporan")}
     </div>
   </div>
 
@@ -4349,25 +5079,21 @@ function getStaffLaporanKeseluruhanHTML() {
       // In real app, this would trigger data reload
       alert('Tempoh ditukar kepada: ' + period);
     }
-  </script>
+  <\/script>
 </body>
 </html>`;
 }
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
+__name(getStaffLaporanKeseluruhanHTML, "getStaffLaporanKeseluruhanHTML");
 function jsonResponse(data, status = 200, additionalHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...additionalHeaders
     }
   });
 }
-
+__name(jsonResponse, "jsonResponse");
 function getStaffLaporanBarangHTML() {
   return `
 <!DOCTYPE html>
@@ -4377,7 +5103,7 @@ function getStaffLaporanBarangHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan Barang - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -4393,10 +5119,10 @@ function getStaffLaporanBarangHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📊 LAPORAN</span>
+              <span class="text-xs font-medium">\u{1F4CA} LAPORAN</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -4404,14 +5130,14 @@ function getStaffLaporanBarangHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📦 Laporan Barang</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4E6} Laporan Barang</h1>
           <p class="text-gray-600 text-sm mt-1">Analisis dan statistik inventori barang ICT</p>
         </div>
       </div>
 
       <!-- Quick Stats -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">📈 Statistik Ringkas</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">\u{1F4C8} Statistik Ringkas</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-green-50 rounded-lg p-3 text-center">
             <div class="text-lg font-bold text-green-600">45</div>
@@ -4438,42 +5164,42 @@ function getStaffLaporanBarangHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-3 rounded-lg">
-                <span class="text-blue-600 text-lg">📈</span>
+                <span class="text-blue-600 text-lg">\u{1F4C8}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Keseluruhan</h3>
                 <p class="text-gray-600 text-xs">Statistik menyeluruh sistem</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
         <button class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-blue-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-3 rounded-lg">
-                <span class="text-green-600 text-lg">📦</span>
+                <span class="text-green-600 text-lg">\u{1F4E6}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Barang</h3>
                 <p class="text-gray-600 text-xs">Analisis penggunaan barang</p>
               </div>
             </div>
-            <span class="text-blue-400">●</span>
+            <span class="text-blue-400">\u25CF</span>
           </div>
         </button>
         <button onclick="window.location.href='/staff-ict/laporan/tempahan'" class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-gray-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-purple-100 p-3 rounded-lg">
-                <span class="text-purple-600 text-lg">📄</span>
+                <span class="text-purple-600 text-lg">\u{1F4C4}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Tempahan</h3>
                 <p class="text-gray-600 text-xs">Laporan tempahan sistem</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
       </div>
@@ -4482,14 +5208,14 @@ function getStaffLaporanBarangHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Cara Menggunakan Laporan</h4>
             <ul class="text-blue-700 text-xs space-y-1">
-              <li>• <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
-              <li>• <strong>Barang</strong> - Analisis penggunaan inventori</li>
-              <li>• <strong>Tempahan</strong> - Template laporan sedia ada</li>
+              <li>\u2022 <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
+              <li>\u2022 <strong>Barang</strong> - Analisis penggunaan inventori</li>
+              <li>\u2022 <strong>Tempahan</strong> - Template laporan sedia ada</li>
             </ul>
           </div>
         </div>
@@ -4535,7 +5261,7 @@ function getStaffLaporanBarangHTML() {
 
       <!-- Kesihatan Inventori -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-4">🏥 Kesihatan Inventori</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-4">\u{1F3E5} Kesihatan Inventori</h3>
         <div class="space-y-3">
           <div>
             <div class="flex justify-between text-xs mb-1">
@@ -4610,7 +5336,7 @@ function getStaffLaporanBarangHTML() {
           <div class="flex-1">
             <label class="block text-xs font-medium text-gray-700 mb-1">Export Laporan</label>
             <button onclick="alert('Laporan barang berjaya diexport ke format CSV!')" class="w-full bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm">
-              📈 Export Laporan
+              \u{1F4C8} Export Laporan
             </button>
           </div>
           <div class="flex-1">
@@ -4660,7 +5386,7 @@ function getStaffLaporanBarangHTML() {
                 </div>
               </div>
               <div class="flex items-center justify-between">
-                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">✅ Baik</span>
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">\u2705 Baik</span>
               </div>
             </div>
           </div>
@@ -4695,10 +5421,10 @@ function getStaffLaporanBarangHTML() {
                 </div>
               </div>
               <div class="flex items-center justify-between">
-                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">⚠️ Perlu Servis</span>
+                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">\u26A0\uFE0F Perlu Servis</span>
               </div>
               <div class="bg-yellow-50 border border-yellow-200 rounded p-2">
-                <p class="text-yellow-700 text-xs">📝 Lampu projector mulai malap</p>
+                <p class="text-yellow-700 text-xs">\u{1F4DD} Lampu projector mulai malap</p>
               </div>
             </div>
           </div>
@@ -4733,21 +5459,21 @@ function getStaffLaporanBarangHTML() {
                 </div>
               </div>
               <div class="flex items-center justify-between">
-                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">✅ Baik</span>
+                <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">\u2705 Baik</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      ${getStaffBottomNavHTML('laporan')}
+      ${getStaffBottomNavHTML("laporan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getStaffLaporanBarangHTML, "getStaffLaporanBarangHTML");
 function getStaffLaporanTempahanHTML() {
   return `
 <!DOCTYPE html>
@@ -4757,7 +5483,7 @@ function getStaffLaporanTempahanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan Tempahan - iBorrow</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -4773,10 +5499,10 @@ function getStaffLaporanTempahanHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/staff-ict/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📊 LAPORAN</span>
+              <span class="text-xs font-medium">\u{1F4CA} LAPORAN</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -4784,14 +5510,14 @@ function getStaffLaporanTempahanHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📄 Laporan Tempahan</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4C4} Laporan Tempahan</h1>
           <p class="text-gray-600 text-sm mt-1">Laporan dan analisis tempahan sistem</p>
         </div>
       </div>
 
       <!-- Quick Stats -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">📈 Statistik Ringkas</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3 text-center">\u{1F4C8} Statistik Ringkas</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-green-50 rounded-lg p-3 text-center">
             <div class="text-lg font-bold text-green-600">45</div>
@@ -4818,42 +5544,42 @@ function getStaffLaporanTempahanHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-3 rounded-lg">
-                <span class="text-blue-600 text-lg">📈</span>
+                <span class="text-blue-600 text-lg">\u{1F4C8}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Keseluruhan</h3>
                 <p class="text-gray-600 text-xs">Statistik menyeluruh sistem</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
         <button onclick="window.location.href='/staff-ict/laporan/barang'" class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-gray-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-3 rounded-lg">
-                <span class="text-green-600 text-lg">📦</span>
+                <span class="text-green-600 text-lg">\u{1F4E6}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Barang</h3>
                 <p class="text-gray-600 text-xs">Analisis penggunaan barang</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
         <button class="w-full bg-white rounded-xl shadow-sm p-4 text-left hover:bg-gray-50 transition-colors border border-blue-200">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-purple-100 p-3 rounded-lg">
-                <span class="text-purple-600 text-lg">📄</span>
+                <span class="text-purple-600 text-lg">\u{1F4C4}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Laporan Tempahan</h3>
                 <p class="text-gray-600 text-xs">Laporan tempahan sistem</p>
               </div>
             </div>
-            <span class="text-blue-400">●</span>
+            <span class="text-blue-400">\u25CF</span>
           </div>
         </button>
       </div>
@@ -4862,14 +5588,14 @@ function getStaffLaporanTempahanHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Cara Menggunakan Laporan</h4>
             <ul class="text-blue-700 text-xs space-y-1">
-              <li>• <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
-              <li>• <strong>Barang</strong> - Analisis penggunaan inventori</li>
-              <li>• <strong>Tempahan</strong> - Template laporan sedia ada</li>
+              <li>\u2022 <strong>Keseluruhan</strong> - Overview semua aktiviti</li>
+              <li>\u2022 <strong>Barang</strong> - Analisis penggunaan inventori</li>
+              <li>\u2022 <strong>Tempahan</strong> - Template laporan sedia ada</li>
             </ul>
           </div>
         </div>
@@ -4884,7 +5610,7 @@ function getStaffLaporanTempahanHTML() {
               <p class="text-lg font-bold text-gray-900">156</p>
             </div>
             <div class="bg-blue-100 p-2 rounded-lg">
-              <span class="text-blue-600 text-sm">📦</span>
+              <span class="text-blue-600 text-sm">\u{1F4E6}</span>
             </div>
           </div>
         </div>
@@ -4895,7 +5621,7 @@ function getStaffLaporanTempahanHTML() {
               <p class="text-lg font-bold text-gray-900">12</p>
             </div>
             <div class="bg-green-100 p-2 rounded-lg">
-              <span class="text-green-600 text-sm">🆕</span>
+              <span class="text-green-600 text-sm">\u{1F195}</span>
             </div>
           </div>
         </div>
@@ -4906,7 +5632,7 @@ function getStaffLaporanTempahanHTML() {
               <p class="text-lg font-bold text-gray-900">8</p>
             </div>
             <div class="bg-yellow-100 p-2 rounded-lg">
-              <span class="text-yellow-600 text-sm">⏳</span>
+              <span class="text-yellow-600 text-sm">\u23F3</span>
             </div>
           </div>
         </div>
@@ -4917,7 +5643,7 @@ function getStaffLaporanTempahanHTML() {
               <p class="text-lg font-bold text-gray-900">45</p>
             </div>
             <div class="bg-purple-100 p-2 rounded-lg">
-              <span class="text-purple-600 text-sm">✅</span>
+              <span class="text-purple-600 text-sm">\u2705</span>
             </div>
           </div>
         </div>
@@ -4925,12 +5651,12 @@ function getStaffLaporanTempahanHTML() {
 
       <!-- Analisis Tempahan -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📊 Analisis Tempahan</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CA} Analisis Tempahan</h2>
         <div class="space-y-3">
           <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-2 rounded-lg">
-                <span class="text-blue-600 text-sm">📈</span>
+                <span class="text-blue-600 text-sm">\u{1F4C8}</span>
               </div>
               <div>
                 <p class="text-xs font-medium text-gray-900">Trend Tempahan Bulanan</p>
@@ -4941,7 +5667,7 @@ function getStaffLaporanTempahanHTML() {
           <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-2 rounded-lg">
-                <span class="text-green-600 text-sm">⏰</span>
+                <span class="text-green-600 text-sm">\u23F0</span>
               </div>
               <div>
                 <p class="text-xs font-medium text-gray-900">Waktu Puncak</p>
@@ -4952,7 +5678,7 @@ function getStaffLaporanTempahanHTML() {
           <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
             <div class="flex items-center gap-3">
               <div class="bg-purple-100 p-2 rounded-lg">
-                <span class="text-purple-600 text-sm">👥</span>
+                <span class="text-purple-600 text-sm">\u{1F465}</span>
               </div>
               <div>
                 <p class="text-xs font-medium text-gray-900">Pengguna Aktif</p>
@@ -4965,48 +5691,48 @@ function getStaffLaporanTempahanHTML() {
 
       <!-- Template Laporan -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📋 Template Laporan</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CB} Template Laporan</h2>
         <div class="space-y-2">
           <button onclick="alert('Muat turun laporan harian...')" class="w-full bg-gray-50 rounded-lg p-3 text-left hover:bg-gray-100 transition-colors border border-gray-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="bg-blue-100 p-2 rounded-lg">
-                  <span class="text-blue-600 text-sm">📅</span>
+                  <span class="text-blue-600 text-sm">\u{1F4C5}</span>
                 </div>
                 <div>
                   <h3 class="font-medium text-gray-900 text-sm">Laporan Harian</h3>
                   <p class="text-gray-600 text-xs">Ringkasan aktiviti harian</p>
                 </div>
               </div>
-              <span class="text-gray-400 text-sm">📥</span>
+              <span class="text-gray-400 text-sm">\u{1F4E5}</span>
             </div>
           </button>
           <button onclick="alert('Muat turun laporan mingguan...')" class="w-full bg-gray-50 rounded-lg p-3 text-left hover:bg-gray-100 transition-colors border border-gray-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="bg-green-100 p-2 rounded-lg">
-                  <span class="text-green-600 text-sm">📊</span>
+                  <span class="text-green-600 text-sm">\u{1F4CA}</span>
                 </div>
                 <div>
                   <h3 class="font-medium text-gray-900 text-sm">Laporan Mingguan</h3>
                   <p class="text-gray-600 text-xs">Analisis prestasi mingguan</p>
                 </div>
               </div>
-              <span class="text-gray-400 text-sm">📥</span>
+              <span class="text-gray-400 text-sm">\u{1F4E5}</span>
             </div>
           </button>
           <button onclick="alert('Muat turun laporan bulanan...')" class="w-full bg-gray-50 rounded-lg p-3 text-left hover:bg-gray-100 transition-colors border border-gray-200">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="bg-purple-100 p-2 rounded-lg">
-                  <span class="text-purple-600 text-sm">📈</span>
+                  <span class="text-purple-600 text-sm">\u{1F4C8}</span>
                 </div>
                 <div>
                   <h3 class="font-medium text-gray-900 text-sm">Laporan Bulanan</h3>
                   <p class="text-gray-600 text-xs">Statistik bulanan lengkap</p>
                 </div>
               </div>
-              <span class="text-gray-400 text-sm">📥</span>
+              <span class="text-gray-400 text-sm">\u{1F4E5}</span>
             </div>
           </button>
         </div>
@@ -5014,11 +5740,11 @@ function getStaffLaporanTempahanHTML() {
 
       <!-- Recent Activity -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-20">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">🕒 Aktiviti Tempahan Terkini</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F552} Aktiviti Tempahan Terkini</h2>
         <div class="space-y-2">
           <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
             <div class="bg-blue-100 p-1 rounded">
-              <span class="text-blue-600 text-xs">📋</span>
+              <span class="text-blue-600 text-xs">\u{1F4CB}</span>
             </div>
             <div class="flex-1">
               <p class="text-xs font-medium text-gray-900">Tempahan baru diterima</p>
@@ -5027,7 +5753,7 @@ function getStaffLaporanTempahanHTML() {
           </div>
           <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
             <div class="bg-green-100 p-1 rounded">
-              <span class="text-green-600 text-xs">✅</span>
+              <span class="text-green-600 text-xs">\u2705</span>
             </div>
             <div class="flex-1">
               <p class="text-xs font-medium text-gray-900">Tempahan diluluskan</p>
@@ -5036,7 +5762,7 @@ function getStaffLaporanTempahanHTML() {
           </div>
           <div class="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
             <div class="bg-yellow-100 p-1 rounded">
-              <span class="text-yellow-600 text-xs">⏳</span>
+              <span class="text-yellow-600 text-xs">\u23F3</span>
             </div>
             <div class="flex-1">
               <p class="text-xs font-medium text-gray-900">Menunggu kelulusan</p>
@@ -5046,18 +5772,14 @@ function getStaffLaporanTempahanHTML() {
         </div>
       </div>
 
-      ${getStaffBottomNavHTML('laporan')}
+      ${getStaffBottomNavHTML("laporan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
-// ============================================
-// ADMIN PAGES - BARANG
-// ============================================
-
+__name(getStaffLaporanTempahanHTML, "getStaffLaporanTempahanHTML");
 function getAdminBarangHTML() {
   return `
 <!DOCTYPE html>
@@ -5067,7 +5789,7 @@ function getAdminBarangHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Urus Barang - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5081,10 +5803,10 @@ function getAdminBarangHTML() {
         <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2 flex-wrap">
             <button onclick="window.location.href='/admin/dashboard'" class="bg-gray-500 text-white px-2 py-1 rounded-lg text-xs sm:text-sm hover:bg-gray-600 transition-colors">
-              ← <span class="hidden sm:inline">Dashboard</span><span class="sm:hidden">Back</span>
+              \u2190 <span class="hidden sm:inline">Dashboard</span><span class="sm:hidden">Back</span>
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📦 BARANG</span>
+              <span class="text-xs font-medium">\u{1F4E6} BARANG</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-2 py-1 rounded-lg text-xs sm:text-sm hover:bg-red-600 transition-colors">
@@ -5092,7 +5814,7 @@ function getAdminBarangHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-lg sm:text-xl font-bold text-gray-900">📦 Urus Inventori Barang</h1>
+          <h1 class="text-lg sm:text-xl font-bold text-gray-900">\u{1F4E6} Urus Inventori Barang</h1>
           <p class="text-gray-600 text-xs sm:text-sm mt-1">Manage semua barang dalam sistem i-Borrow</p>
         </div>
       </div>
@@ -5129,18 +5851,18 @@ function getAdminBarangHTML() {
 
       <!-- Barang List -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📋 Senarai Barang (Coming Soon)</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CB} Senarai Barang (Coming Soon)</h2>
         <p class="text-gray-500 text-xs text-center py-8">Backend integration akan ditambah</p>
       </div>
 
-      ${getAdminBottomNavHTML('barang')}
+      ${getAdminBottomNavHTML("barang")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminBarangHTML, "getAdminBarangHTML");
 function getAdminPenggunaHTML() {
   return `
 <!DOCTYPE html>
@@ -5150,7 +5872,7 @@ function getAdminPenggunaHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Urus Pengguna - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5164,10 +5886,10 @@ function getAdminPenggunaHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">👥 PENGGUNA</span>
+              <span class="text-xs font-medium">\u{1F465} PENGGUNA</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5175,7 +5897,7 @@ function getAdminPenggunaHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">👥 Urus Pengguna</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F465} Urus Pengguna</h1>
           <p class="text-gray-600 text-sm mt-1">Manage akaun pengguna sistem</p>
         </div>
       </div>
@@ -5212,18 +5934,18 @@ function getAdminPenggunaHTML() {
 
       <!-- Pengguna List -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h2 class="font-semibold text-gray-900 text-sm mb-3">📋 Senarai Pengguna (Coming Soon)</h2>
+        <h2 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CB} Senarai Pengguna (Coming Soon)</h2>
         <p class="text-gray-500 text-xs text-center py-8">Backend integration akan ditambah</p>
       </div>
 
-      ${getAdminBottomNavHTML('pengguna')}
+      ${getAdminBottomNavHTML("pengguna")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminPenggunaHTML, "getAdminPenggunaHTML");
 function getAdminLaporanHTML() {
   return `
 <!DOCTYPE html>
@@ -5233,7 +5955,7 @@ function getAdminLaporanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laporan - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5247,10 +5969,10 @@ function getAdminLaporanHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📊 LAPORAN</span>
+              <span class="text-xs font-medium">\u{1F4CA} LAPORAN</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5258,7 +5980,7 @@ function getAdminLaporanHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📊 Laporan Sistem</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4CA} Laporan Sistem</h1>
           <p class="text-gray-600 text-sm mt-1">Analisis dan statistik keseluruhan</p>
         </div>
       </div>
@@ -5268,7 +5990,7 @@ function getAdminLaporanHTML() {
         <div class="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow border border-gray-200">
           <div class="flex items-center gap-3">
             <div class="bg-blue-100 p-3 rounded-lg">
-              <span class="text-blue-600 text-lg">📈</span>
+              <span class="text-blue-600 text-lg">\u{1F4C8}</span>
             </div>
             <div class="flex-1">
               <h3 class="font-semibold text-gray-900 text-sm">Laporan Keseluruhan</h3>
@@ -5283,7 +6005,7 @@ function getAdminLaporanHTML() {
         <div class="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow border border-gray-200">
           <div class="flex items-center gap-3">
             <div class="bg-green-100 p-3 rounded-lg">
-              <span class="text-green-600 text-lg">📦</span>
+              <span class="text-green-600 text-lg">\u{1F4E6}</span>
             </div>
             <div class="flex-1">
               <h3 class="font-semibold text-gray-900 text-sm">Laporan Inventori</h3>
@@ -5298,7 +6020,7 @@ function getAdminLaporanHTML() {
         <div class="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition-shadow border border-gray-200">
           <div class="flex items-center gap-3">
             <div class="bg-purple-100 p-3 rounded-lg">
-              <span class="text-purple-600 text-lg">👥</span>
+              <span class="text-purple-600 text-lg">\u{1F465}</span>
             </div>
             <div class="flex-1">
               <h3 class="font-semibold text-gray-900 text-sm">Laporan Pengguna</h3>
@@ -5315,7 +6037,7 @@ function getAdminLaporanHTML() {
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
           <div class="bg-blue-100 p-2 rounded-lg">
-            <span class="text-blue-600 text-sm">💡</span>
+            <span class="text-blue-600 text-sm">\u{1F4A1}</span>
           </div>
           <div>
             <h4 class="font-semibold text-blue-800 text-sm mb-2">Info Laporan</h4>
@@ -5324,14 +6046,14 @@ function getAdminLaporanHTML() {
         </div>
       </div>
 
-      ${getAdminBottomNavHTML('laporan')}
+      ${getAdminBottomNavHTML("laporan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminLaporanHTML, "getAdminLaporanHTML");
 function getAdminProfileHTML() {
   return `
 <!DOCTYPE html>
@@ -5341,7 +6063,7 @@ function getAdminProfileHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Profil - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5355,10 +6077,10 @@ function getAdminProfileHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-blue-600 bg-blue-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">👤 PROFIL</span>
+              <span class="text-xs font-medium">\u{1F464} PROFIL</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5366,7 +6088,7 @@ function getAdminProfileHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">👤 Profil Admin</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F464} Profil Admin</h1>
           <p class="text-gray-600 text-sm mt-1">Maklumat akaun anda</p>
         </div>
       </div>
@@ -5375,7 +6097,7 @@ function getAdminProfileHTML() {
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
         <div class="text-center mb-4">
           <div class="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
-            <span class="text-white text-3xl">👤</span>
+            <span class="text-white text-3xl">\u{1F464}</span>
           </div>
           <h2 class="font-bold text-gray-900">Admin System</h2>
           <p class="text-gray-600 text-sm">admin@ilkkm.edu.my</p>
@@ -5405,21 +6127,21 @@ function getAdminProfileHTML() {
       <!-- Actions -->
       <div class="space-y-3 mb-4">
         <button onclick="alert('Edit profil akan ditambah')" class="w-full bg-blue-500 text-white py-3 rounded-xl hover:bg-blue-600 transition-colors text-sm font-medium">
-          ✏️ Edit Profil
+          \u270F\uFE0F Edit Profil
         </button>
         <button onclick="alert('Tukar password akan ditambah')" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium">
-          🔒 Tukar Password
+          \u{1F512} Tukar Password
         </button>
       </div>
 
-      ${getAdminBottomNavHTML('profile')}
+      ${getAdminBottomNavHTML("profile")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminProfileHTML, "getAdminProfileHTML");
 function getAdminTetapanSistemHTML() {
   return `
 <!DOCTYPE html>
@@ -5429,7 +6151,7 @@ function getAdminTetapanSistemHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tetapan Sistem - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5443,10 +6165,10 @@ function getAdminTetapanSistemHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/dashboard'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Dashboard
+              \u2190 Dashboard
             </button>
             <div class="text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">⚙️ TETAPAN</span>
+              <span class="text-xs font-medium">\u2699\uFE0F TETAPAN</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5454,7 +6176,7 @@ function getAdminTetapanSistemHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">⚙️ Tetapan Sistem</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u2699\uFE0F Tetapan Sistem</h1>
           <p class="text-gray-600 text-sm mt-1">Konfigurasi sistem i-Borrow</p>
         </div>
       </div>
@@ -5465,14 +6187,14 @@ function getAdminTetapanSistemHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-blue-100 p-3 rounded-lg">
-                <span class="text-blue-600 text-lg">⚙️</span>
+                <span class="text-blue-600 text-lg">\u2699\uFE0F</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Tetapan Sistem</h3>
                 <p class="text-gray-600 text-xs">Konfigurasi am sistem</p>
               </div>
             </div>
-            <span class="text-blue-400">●</span>
+            <span class="text-blue-400">\u25CF</span>
           </div>
         </button>
 
@@ -5480,14 +6202,14 @@ function getAdminTetapanSistemHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-red-100 p-3 rounded-lg">
-                <span class="text-red-600 text-lg">🔒</span>
+                <span class="text-red-600 text-lg">\u{1F512}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Keselamatan</h3>
                 <p class="text-gray-600 text-xs">Password & authentication</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
 
@@ -5495,14 +6217,14 @@ function getAdminTetapanSistemHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-green-100 p-3 rounded-lg">
-                <span class="text-green-600 text-lg">📋</span>
+                <span class="text-green-600 text-lg">\u{1F4CB}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Log Aktiviti</h3>
                 <p class="text-gray-600 text-xs">Audit trail sistem</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
 
@@ -5510,21 +6232,21 @@ function getAdminTetapanSistemHTML() {
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="bg-purple-100 p-3 rounded-lg">
-                <span class="text-purple-600 text-lg">💾</span>
+                <span class="text-purple-600 text-lg">\u{1F4BE}</span>
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 text-sm">Backup & Pulih</h3>
                 <p class="text-gray-600 text-xs">Database backup</p>
               </div>
             </div>
-            <span class="text-gray-400">→</span>
+            <span class="text-gray-400">\u2192</span>
           </div>
         </button>
       </div>
 
       <!-- Current Settings -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">📝 Tetapan Semasa</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4DD} Tetapan Semasa</h3>
         <div class="space-y-3 text-sm">
           <div class="flex justify-between items-center pb-2 border-b">
             <span class="text-gray-600">Nama Sistem</span>
@@ -5545,14 +6267,14 @@ function getAdminTetapanSistemHTML() {
         </div>
       </div>
 
-      ${getAdminBottomNavHTML('tetapan')}
+      ${getAdminBottomNavHTML("tetapan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminTetapanSistemHTML, "getAdminTetapanSistemHTML");
 function getAdminTetapanKeselamatanHTML() {
   return `
 <!DOCTYPE html>
@@ -5562,7 +6284,7 @@ function getAdminTetapanKeselamatanHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Keselamatan - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5576,10 +6298,10 @@ function getAdminTetapanKeselamatanHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/tetapan/sistem'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Tetapan
+              \u2190 Tetapan
             </button>
             <div class="text-red-600 bg-red-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">🔒 KESELAMATAN</span>
+              <span class="text-xs font-medium">\u{1F512} KESELAMATAN</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5587,14 +6309,14 @@ function getAdminTetapanKeselamatanHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">🔒 Keselamatan</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F512} Keselamatan</h1>
           <p class="text-gray-600 text-sm mt-1">Password & authentication settings</p>
         </div>
       </div>
 
       <!-- Security Settings -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">🔐 Tetapan Password</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F510} Tetapan Password</h3>
         <div class="space-y-3">
           <div class="flex justify-between items-center">
             <span class="text-gray-600 text-sm">Minimum Length</span>
@@ -5618,14 +6340,14 @@ function getAdminTetapanKeselamatanHTML() {
         </button>
       </div>
 
-      ${getAdminBottomNavHTML('tetapan')}
+      ${getAdminBottomNavHTML("tetapan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminTetapanKeselamatanHTML, "getAdminTetapanKeselamatanHTML");
 function getAdminTetapanLogAktivitiHTML() {
   return `
 <!DOCTYPE html>
@@ -5635,7 +6357,7 @@ function getAdminTetapanLogAktivitiHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Log Aktiviti - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5649,10 +6371,10 @@ function getAdminTetapanLogAktivitiHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/tetapan/sistem'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Tetapan
+              \u2190 Tetapan
             </button>
             <div class="text-green-600 bg-green-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">📋 LOG</span>
+              <span class="text-xs font-medium">\u{1F4CB} LOG</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5660,31 +6382,31 @@ function getAdminTetapanLogAktivitiHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">📋 Log Aktiviti</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4CB} Log Aktiviti</h1>
           <p class="text-gray-600 text-sm mt-1">Audit trail sistem</p>
         </div>
       </div>
 
       <!-- Activity Logs -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">🕒 Aktiviti Terkini</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F552} Aktiviti Terkini</h3>
         <div class="space-y-2">
           <div class="flex items-start gap-3 p-2 bg-gray-50 rounded">
-            <span class="text-lg">👤</span>
+            <span class="text-lg">\u{1F464}</span>
             <div class="flex-1">
               <p class="text-sm font-medium">User login</p>
               <p class="text-xs text-gray-600">admin@ilkkm.edu.my - 2 minutes ago</p>
             </div>
           </div>
           <div class="flex items-start gap-3 p-2 bg-gray-50 rounded">
-            <span class="text-lg">📦</span>
+            <span class="text-lg">\u{1F4E6}</span>
             <div class="flex-1">
               <p class="text-sm font-medium">Barang updated</p>
               <p class="text-xs text-gray-600">Laptop Dell - Status changed - 15 minutes ago</p>
             </div>
           </div>
           <div class="flex items-start gap-3 p-2 bg-gray-50 rounded">
-            <span class="text-lg">✅</span>
+            <span class="text-lg">\u2705</span>
             <div class="flex-1">
               <p class="text-sm font-medium">Tempahan approved</p>
               <p class="text-xs text-gray-600">Staff ICT approved request - 1 hour ago</p>
@@ -5693,14 +6415,14 @@ function getAdminTetapanLogAktivitiHTML() {
         </div>
       </div>
 
-      ${getAdminBottomNavHTML('tetapan')}
+      ${getAdminBottomNavHTML("tetapan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminTetapanLogAktivitiHTML, "getAdminTetapanLogAktivitiHTML");
 function getAdminTetapanBackupPulihHTML() {
   return `
 <!DOCTYPE html>
@@ -5710,7 +6432,7 @@ function getAdminTetapanBackupPulihHTML() {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Backup & Pulih - Admin</title>
   ${getFaviconHTML()}
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"><\/script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
@@ -5724,10 +6446,10 @@ function getAdminTetapanBackupPulihHTML() {
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <button onclick="window.location.href='/admin/tetapan/sistem'" class="bg-gray-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-gray-600 transition-colors">
-              ← Tetapan
+              \u2190 Tetapan
             </button>
             <div class="text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
-              <span class="text-xs font-medium">💾 BACKUP</span>
+              <span class="text-xs font-medium">\u{1F4BE} BACKUP</span>
             </div>
           </div>
           <button onclick="if(confirm('Adakah anda pasti ingin log keluar?')) window.location.href='/login'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-sm hover:bg-red-600 transition-colors">
@@ -5735,7 +6457,7 @@ function getAdminTetapanBackupPulihHTML() {
           </button>
         </div>
         <div class="text-center">
-          <h1 class="text-xl font-bold text-gray-900">💾 Backup & Pulih</h1>
+          <h1 class="text-xl font-bold text-gray-900">\u{1F4BE} Backup & Pulih</h1>
           <p class="text-gray-600 text-sm mt-1">Database backup management</p>
         </div>
       </div>
@@ -5743,16 +6465,16 @@ function getAdminTetapanBackupPulihHTML() {
       <!-- Backup Actions -->
       <div class="space-y-3 mb-4">
         <button onclick="alert('Backup akan dimulakan')" class="w-full bg-green-500 text-white py-4 rounded-xl hover:bg-green-600 transition-colors text-sm font-medium">
-          💾 Buat Backup Sekarang
+          \u{1F4BE} Buat Backup Sekarang
         </button>
         <button onclick="alert('Restore feature akan ditambah')" class="w-full bg-blue-500 text-white py-4 rounded-xl hover:bg-blue-600 transition-colors text-sm font-medium">
-          ↩️ Pulihkan dari Backup
+          \u21A9\uFE0F Pulihkan dari Backup
         </button>
       </div>
 
       <!-- Recent Backups -->
       <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
-        <h3 class="font-semibold text-gray-900 text-sm mb-3">📋 Backup Terkini</h3>
+        <h3 class="font-semibold text-gray-900 text-sm mb-3">\u{1F4CB} Backup Terkini</h3>
         <div class="space-y-2">
           <div class="flex items-center justify-between p-3 bg-gray-50 rounded">
             <div>
@@ -5760,7 +6482,7 @@ function getAdminTetapanBackupPulihHTML() {
               <p class="text-xs text-gray-600">15 Jan 2025, 10:30 AM</p>
             </div>
             <button onclick="alert('Download backup')" class="text-blue-600 text-xs">
-              ⬇️ Download
+              \u2B07\uFE0F Download
             </button>
           </div>
         </div>
@@ -5769,7 +6491,7 @@ function getAdminTetapanBackupPulihHTML() {
       <!-- Warning -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-4">
         <div class="flex items-start gap-3">
-          <span class="text-yellow-600 text-lg">⚠️</span>
+          <span class="text-yellow-600 text-lg">\u26A0\uFE0F</span>
           <div>
             <h4 class="font-semibold text-yellow-800 text-sm mb-1">Amaran</h4>
             <p class="text-yellow-700 text-xs">Pastikan anda membuat backup secara berkala untuk elakkan kehilangan data.</p>
@@ -5777,29 +6499,209 @@ function getAdminTetapanBackupPulihHTML() {
         </div>
       </div>
 
-      ${getAdminBottomNavHTML('tetapan')}
+      ${getAdminBottomNavHTML("tetapan")}
     </div>
   </div>
 </body>
 </html>
   `;
 }
-
+__name(getAdminTetapanBackupPulihHTML, "getAdminTetapanBackupPulihHTML");
 function htmlResponse(html, additionalHeaders = {}, status = 200) {
   return new Response(html, {
     status,
     headers: {
-      'Content-Type': 'text/html; charset=utf-8',
+      "Content-Type": "text/html; charset=utf-8",
       ...additionalHeaders
     }
   });
 }
-
+__name(htmlResponse, "htmlResponse");
 function getRedirectPath(role) {
   switch (role) {
-    case 'admin': return '/admin/dashboard';
-    case 'staff-ict': return '/staff-ict/dashboard';
-    case 'user': return '/user/dashboard';
-    default: return '/user/dashboard';
+    case "admin":
+      return "/admin/dashboard";
+    case "staff-ict":
+      return "/staff-ict/dashboard";
+    case "user":
+      return "/user/dashboard";
+    default:
+      return "/user/dashboard";
   }
 }
+__name(getRedirectPath, "getRedirectPath");
+
+// node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
+var drainBody = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env2);
+  } finally {
+    try {
+      if (request.body !== null && !request.bodyUsed) {
+        const reader = request.body.getReader();
+        while (!(await reader.read()).done) {
+        }
+      }
+    } catch (e) {
+      console.error("Failed to drain the unused request body.", e);
+    }
+  }
+}, "drainBody");
+var middleware_ensure_req_body_drained_default = drainBody;
+
+// node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
+function reduceError(e) {
+  return {
+    name: e?.name,
+    message: e?.message ?? String(e),
+    stack: e?.stack,
+    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
+  };
+}
+__name(reduceError, "reduceError");
+var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx) => {
+  try {
+    return await middlewareCtx.next(request, env2);
+  } catch (e) {
+    const error3 = reduceError(e);
+    return Response.json(error3, {
+      status: 500,
+      headers: { "MF-Experimental-Error-Stack": "true" }
+    });
+  }
+}, "jsonError");
+var middleware_miniflare3_json_error_default = jsonError;
+
+// .wrangler/tmp/bundle-srXSRC/middleware-insertion-facade.js
+var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
+  middleware_ensure_req_body_drained_default,
+  middleware_miniflare3_json_error_default
+];
+var middleware_insertion_facade_default = worker_default;
+
+// node_modules/wrangler/templates/middleware/common.ts
+var __facade_middleware__ = [];
+function __facade_register__(...args) {
+  __facade_middleware__.push(...args.flat());
+}
+__name(__facade_register__, "__facade_register__");
+function __facade_invokeChain__(request, env2, ctx, dispatch, middlewareChain) {
+  const [head, ...tail] = middlewareChain;
+  const middlewareCtx = {
+    dispatch,
+    next(newRequest, newEnv) {
+      return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
+    }
+  };
+  return head(request, env2, ctx, middlewareCtx);
+}
+__name(__facade_invokeChain__, "__facade_invokeChain__");
+function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
+  return __facade_invokeChain__(request, env2, ctx, dispatch, [
+    ...__facade_middleware__,
+    finalMiddleware
+  ]);
+}
+__name(__facade_invoke__, "__facade_invoke__");
+
+// .wrangler/tmp/bundle-srXSRC/middleware-loader.entry.ts
+var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
+  constructor(scheduledTime, cron, noRetry) {
+    this.scheduledTime = scheduledTime;
+    this.cron = cron;
+    this.#noRetry = noRetry;
+  }
+  static {
+    __name(this, "__Facade_ScheduledController__");
+  }
+  #noRetry;
+  noRetry() {
+    if (!(this instanceof ___Facade_ScheduledController__)) {
+      throw new TypeError("Illegal invocation");
+    }
+    this.#noRetry();
+  }
+};
+function wrapExportedHandler(worker) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+    return worker;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
+    __facade_register__(middleware);
+  }
+  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env2, ctx) {
+    if (worker.fetch === void 0) {
+      throw new Error("Handler does not export a fetch() function.");
+    }
+    return worker.fetch(request, env2, ctx);
+  }, "fetchDispatcher");
+  return {
+    ...worker,
+    fetch(request, env2, ctx) {
+      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
+        if (type === "scheduled" && worker.scheduled !== void 0) {
+          const controller = new __Facade_ScheduledController__(
+            Date.now(),
+            init.cron ?? "",
+            () => {
+            }
+          );
+          return worker.scheduled(controller, env2, ctx);
+        }
+      }, "dispatcher");
+      return __facade_invoke__(request, env2, ctx, dispatcher, fetchDispatcher);
+    }
+  };
+}
+__name(wrapExportedHandler, "wrapExportedHandler");
+function wrapWorkerEntrypoint(klass) {
+  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+    return klass;
+  }
+  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
+    __facade_register__(middleware);
+  }
+  return class extends klass {
+    #fetchDispatcher = /* @__PURE__ */ __name((request, env2, ctx) => {
+      this.env = env2;
+      this.ctx = ctx;
+      if (super.fetch === void 0) {
+        throw new Error("Entrypoint class does not define a fetch() function.");
+      }
+      return super.fetch(request);
+    }, "#fetchDispatcher");
+    #dispatcher = /* @__PURE__ */ __name((type, init) => {
+      if (type === "scheduled" && super.scheduled !== void 0) {
+        const controller = new __Facade_ScheduledController__(
+          Date.now(),
+          init.cron ?? "",
+          () => {
+          }
+        );
+        return super.scheduled(controller);
+      }
+    }, "#dispatcher");
+    fetch(request) {
+      return __facade_invoke__(
+        request,
+        this.env,
+        this.ctx,
+        this.#dispatcher,
+        this.#fetchDispatcher
+      );
+    }
+  };
+}
+__name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
+var WRAPPED_ENTRY;
+if (typeof middleware_insertion_facade_default === "object") {
+  WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
+} else if (typeof middleware_insertion_facade_default === "function") {
+  WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
+}
+var middleware_loader_entry_default = WRAPPED_ENTRY;
+export {
+  __INTERNAL_WRANGLER_MIDDLEWARE__,
+  middleware_loader_entry_default as default
+};
+//# sourceMappingURL=worker.js.map

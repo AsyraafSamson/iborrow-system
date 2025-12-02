@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "wrangler dev worker.js --local",
+    "dev:next": "next dev",
     "build": "next build",
     "build:cf": "next build && npx @cloudflare/next-on-pages",
     "start": "next start",
@@ -13,7 +14,7 @@
     "d1:query": "wrangler d1 execute iborrow --remote --command",
     "d1:list": "wrangler d1 list",
     "pages:dev": "wrangler pages dev .vercel/output/static --compatibility-flag=nodejs_compat --binding DB=iborrow",
-    "deploy": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name=iborrow-system"
+    "deploy": "wrangler deploy"
   },
   "dependencies": {
     "next": "^15.5.2",
