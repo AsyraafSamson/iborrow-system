@@ -1,11 +1,9 @@
-# iBorrow System - Cloudflare Pages with Next.js + D1
 name = "iborrow"
 compatibility_date = "2025-12-03"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".next/server"
 
-# D1 Database Binding for Pages
+# D1 Database binding
 [[d1_databases]]
 binding = "DB"
-database_name = "iborrow" 
+database_name = "iborrow"
 database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
