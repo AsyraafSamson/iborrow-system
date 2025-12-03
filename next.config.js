@@ -5,7 +5,7 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // Disable type checking during build
+  // Disable type checking during build  
   typescript: {
     ignoreBuildErrors: true,
   },
