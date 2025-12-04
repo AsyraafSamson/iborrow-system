@@ -7,6 +7,14 @@ import Link from 'next/link'
 export default function AdminDashboard() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
+  const [dashboardData, setDashboardData] = useState({
+    totalUsers: 0,
+    totalBarang: 0,
+    tempahanAktif: 0,
+    perluKelulusan: 0,
+    recentActivity: []
+  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -16,6 +24,26 @@ export default function AdminDashboard() {
     }
     setUser(JSON.parse(userData))
   }, [router])
+
+  useEffect(() => {
+    if (user) {
+      const fetchDashboardData = async () => {
+        try {
+          const response = await fetch('/api/admin/dashboard')
+          if (response.ok) {
+            const data = await response.json()
+            setDashboardData(data)
+          }
+        } catch (error) {
+          console.error('Error fetching dashboard data:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      fetchDashboardData()
+    }
+  }, [user])
 
   const handleLogout = () => {
     localStorage.removeItem('user')
@@ -41,23 +69,50 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Dashboard Stats */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="bg-blue-100 rounded-xl p-4">
-            <div className="text-3xl font-bold text-blue-800">45</div>
+            <div className="text-3xl font-bold text-blue-800">
+              {loading ? '...' : dashboardData.totalUsers}
+            </div>
             <div className="text-sm text-blue-600">Total Pengguna</div>
           </div>
           <div className="bg-green-100 rounded-xl p-4">
-            <div className="text-3xl font-bold text-green-800">128</div>
+            <div className="text-3xl font-bold text-green-800">
+              {loading ? '...' : dashboardData.totalBarang}
+            </div>
             <div className="text-sm text-green-600">Total Barang</div>
           </div>
           <div className="bg-purple-100 rounded-xl p-4">
-            <div className="text-3xl font-bold text-purple-800">23</div>
+            <div className="text-3xl font-bold text-purple-800">
+              {loading ? '...' : dashboardData.tempahanAktif}
+            </div>
             <div className="text-sm text-purple-600">Tempahan Aktif</div>
           </div>
           <div className="bg-orange-100 rounded-xl p-4">
-            <div className="text-3xl font-bold text-orange-800">8</div>
+            <div className="text-3xl font-bold text-orange-800">
+              {loading ? '...' : dashboardData.perluKelulusan}
+            </div>
             <div className="text-sm text-orange-600">Perlu Kelulusan</div>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">Aktiviti Terkini</h2>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {loading ? (
+              <div className="text-gray-500 text-sm">Memuat aktiviti...</div>
+            ) : dashboardData.recentActivity.length > 0 ? (
+              dashboardData.recentActivity.map((activity: any, index: number) => (
+                <div key={index} className="text-xs text-gray-600 py-1 border-b border-gray-100 last:border-b-0">
+                  <span className="font-medium">{activity.user_email}</span> - {activity.action}
+                  <div className="text-gray-400">{new Date(activity.timestamp).toLocaleString()}</div>
+                </div>
+              ))
+            ) : (
+              <div className="text-gray-500 text-sm">Tiada aktiviti terkini</div>
+            )}
           </div>
         </div>
 
@@ -70,6 +125,12 @@ export default function AdminDashboard() {
             </Link>
             <Link href="/admin/barang" className="bg-green-50 p-3 rounded-lg text-center text-green-700 hover:bg-green-100">
               Urus Barang
+            </Link>
+            <Link href="/admin/laporan" className="bg-purple-50 p-3 rounded-lg text-center text-purple-700 hover:bg-purple-100">
+              Lihat Laporan
+            </Link>
+            <Link href="/admin/tetapan/sistem" className="bg-gray-50 p-3 rounded-lg text-center text-gray-700 hover:bg-gray-100">
+              Tetapan Sistem
             </Link>
           </div>
         </div>

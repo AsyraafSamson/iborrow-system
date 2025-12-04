@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Remove static export for full Next.js framework
+  // Static export untuk Cloudflare Pages
+  output: 'export',
+  trailingSlash: true,
+  
   images: {
     unoptimized: true,
   },
