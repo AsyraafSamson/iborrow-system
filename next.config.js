@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Cloudflare Pages compatibility
+  // Remove static export for full Next.js framework
   images: {
     unoptimized: true,
   },

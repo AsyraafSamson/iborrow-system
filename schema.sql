@@ -87,12 +87,13 @@ CREATE INDEX idx_log_user ON log_aktiviti(userId);
 CREATE INDEX idx_log_created ON log_aktiviti(createdAt);
 
 -- Insert default users (password: admin123, staffict123, user123, pengajar123, staff123)
+-- Passwords are hashed using bcrypt for security
 INSERT INTO users (id, email, nama, peranan, fakulti, no_telefon, no_staf, no_matrik, password_hash, status) VALUES
-('user_001', 'admin@ilkkm.edu.my', 'Administrator System', 'admin', 'Bahagian ICT', '0123456789', 'ADM001', NULL, 'admin123', 'aktif'),
-('user_002', 'staffict@ilkkm.edu.my', 'Mohd Faris', 'staff-ict', 'Bahagian ICT', '0123456788', 'ICT001', NULL, 'staffict123', 'aktif'),
-('user_003', 'ahmad@ilkkm.edu.my', 'Ahmad bin Ali', 'pelajar', 'Fakulti Teknologi Maklumat', '0123456787', NULL, 'A12345', 'user123', 'aktif'),
-('user_004', 'siti@ilkkm.edu.my', 'Siti binti Rahman', 'pengajar', 'Fakulti Kejuruteraan', '0123456786', 'PJG001', NULL, 'pengajar123', 'aktif'),
-('user_005', 'ali@ilkkm.edu.my', 'Ali bin Abu', 'staff-pentadbiran', 'Unit Pentadbiran', '0123456785', 'PEN001', NULL, 'staff123', 'aktif');
+('user_001', 'admin@ilkkm.edu.my', 'Administrator System', 'admin', 'Bahagian ICT', '0123456789', 'ADM001', NULL, '$2b$10$07TjoI0KgDzLZm.ZSuZphuebf8sJevzjmTqPyAEFAharZHGhkGIg.', 'aktif'),
+('user_002', 'staffict@ilkkm.edu.my', 'Mohd Faris', 'staff-ict', 'Bahagian ICT', '0123456788', 'ICT001', NULL, '$2b$10$nkaoq.66KpBWptHcl96Mbe4FMEeZ3OWNid6Zp.Sq3KKqh2ZKKF4z2', 'aktif'),
+('user_003', 'ahmad@ilkkm.edu.my', 'Ahmad bin Ali', 'pelajar', 'Fakulti Teknologi Maklumat', '0123456787', NULL, 'A12345', '$2b$10$aJ4pSNY9i.A3WZ8nY3qCPuEdzAiagSMivQUPqPO3w7kID0AwUlaaq', 'aktif'),
+('user_004', 'siti@ilkkm.edu.my', 'Siti binti Rahman', 'pengajar', 'Fakulti Kejuruteraan', '0123456786', 'PJG001', NULL, '$2b$10$y4Himg6OfDkRYW123xU/xODEfd3VRTva5jZeM2OLAIiGAz8jyAPDi', 'aktif'),
+('user_005', 'ali@ilkkm.edu.my', 'Ali bin Abu', 'staff-pentadbiran', 'Unit Pentadbiran', '0123456785', 'PEN001', NULL, '$2b$10$mGwnMsSKJYp3I9xKL2CZZ.qpA00mcNH3va1J/PuDo1zsW/mATkeKG', 'aktif');
 
 -- Insert sample barang
 INSERT INTO barang (id, namaBarang, kategori, kodBarang, kuantitiTersedia, kuantitiTotal, lokasi, status, hargaPerolehan, createdBy, tarikhPerolehan) VALUES

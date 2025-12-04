@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
 import { getD1Database, type User } from '@/lib/database'
+import { verifyPassword } from '@/lib/password'
 
 function getRedirectPath(role: string) {
   switch (role) {
@@ -42,12 +43,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Query D1 database for user
+    // Query D1 database for user by email only
     const user = await db.prepare(
-      'SELECT * FROM users WHERE email = ? AND password_hash = ? AND status = ?'
-    ).bind(email, password, 'aktif').first<User>()
+      'SELECT * FROM users WHERE email = ? AND status = ?'
+    ).bind(email, 'aktif').first<User>()
 
     if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Email atau password salah'
+        },
+        { status: 401 }
+      )
+    }
+
+    // Verify password using bcrypt
+    const isPasswordValid = await verifyPassword(password, user.password_hash)
+
+    if (!isPasswordValid) {
       return NextResponse.json(
         {
           success: false,

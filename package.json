@@ -18,6 +18,8 @@
     "deploy:pages": "npm run build:cf && wrangler pages deploy .vercel/output/static --project-name=iborrow"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "next": "^15.5.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
