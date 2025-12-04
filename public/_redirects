@@ -1,0 +1,5 @@
+# Cloudflare Pages redirects for Next.js App Router
+# Handle API routes
+/api/* /api/:splat 200
+# Handle dynamic routes and client-side routing
+/* /index.html 200
