@@ -31,8 +31,11 @@ export default function LoginPage() {
       if (data.success) {
         setSuccess(data.message + ' - Redirecting...')
 
-        // Store user data
+        // Store user data and session token
         localStorage.setItem('user', JSON.stringify(data.user))
+        if (data.token) {
+          localStorage.setItem('session_token', data.token)
+        }
 
         // Redirect
         setTimeout(() => {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
+import { logCRUD } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -63,8 +65,22 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Get current user for logging
+    const currentUser = getCurrentUser(request)
+
     // Real D1 insert
     const id = 'user_' + Date.now()
+    const newUserData = {
+      id,
+      email: body.email,
+      nama: body.nama,
+      peranan: body.role,
+      fakulti: body.fakulti,
+      no_telefon: body.no_telefon || '',
+      no_matrik: body.noMatrik || null,
+      no_staf: body.noStaf || null,
+      status: 'aktif'
+    }
 
     await db.prepare(`
       INSERT INTO users (id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, password_hash, status)
@@ -81,6 +97,20 @@ export async function POST(request: NextRequest) {
       'password123', // Default password
       'aktif'
     ).run()
+
+    // Log the creation
+    if (currentUser) {
+      await logCRUD(
+        db,
+        currentUser.id,
+        'CREATE',
+        'users',
+        id,
+        null,
+        newUserData,
+        request
+      )
+    }
 
     return NextResponse.json({
       success: true,
@@ -113,11 +143,33 @@ export async function PUT(request: NextRequest) {
       })
     }
 
+    // Get current user for logging
+    const currentUser = getCurrentUser(request)
+
+    // Get old data before update
+    const oldUser = await db.prepare(
+      'SELECT * FROM users WHERE id = ?'
+    ).bind(body.id).first()
+
     // Reset password
     if (body.action === 'reset-password') {
       await db.prepare(
         'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
       ).bind('password123', body.id).run()
+
+      // Log password reset
+      if (currentUser && oldUser) {
+        await logCRUD(
+          db,
+          currentUser.id,
+          'UPDATE',
+          'users',
+          body.id,
+          { action: 'password_reset' },
+          { action: 'password_reset', new_password: 'password123' },
+          request
+        )
+      }
 
       return NextResponse.json({
         success: true,
@@ -130,6 +182,20 @@ export async function PUT(request: NextRequest) {
       await db.prepare(
         'UPDATE users SET status = ?, updated_at = datetime("now") WHERE id = ?'
       ).bind(body.status, body.id).run()
+
+      // Log status update
+      if (currentUser && oldUser) {
+        await logCRUD(
+          db,
+          currentUser.id,
+          'UPDATE',
+          'users',
+          body.id,
+          { status: oldUser.status },
+          { status: body.status },
+          request
+        )
+      }
     }
 
     return NextResponse.json({
@@ -163,10 +229,32 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
+    // Get current user for logging
+    const currentUser = getCurrentUser(request)
+
     // Bulk delete
     if (Array.isArray(body.ids)) {
       for (const id of body.ids) {
+        // Get old data before delete
+        const oldUser = await db.prepare(
+          'SELECT id, nama, email, peranan FROM users WHERE id = ?'
+        ).bind(id).first()
+
         await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run()
+
+        // Log each deletion
+        if (currentUser && oldUser) {
+          await logCRUD(
+            db,
+            currentUser.id,
+            'DELETE',
+            'users',
+            id,
+            oldUser,
+            null,
+            request
+          )
+        }
       }
       return NextResponse.json({
         success: true,
@@ -174,8 +262,27 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
-    // Single delete
+    // Single delete - Get old data first
+    const oldUser = await db.prepare(
+      'SELECT id, nama, email, peranan FROM users WHERE id = ?'
+    ).bind(body.id).first()
+
     await db.prepare('DELETE FROM users WHERE id = ?').bind(body.id).run()
+
+    // Log the deletion
+    if (currentUser && oldUser) {
+      await logCRUD(
+        db,
+        currentUser.id,
+        'DELETE',
+        'users',
+        body.id,
+        oldUser,
+        null,
+        request
+      )
+    }
+
     return NextResponse.json({
       success: true,
       message: 'Pengguna berjaya dipadam'

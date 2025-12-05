@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser, requireRole } from '@/lib/session'
+import { logApproval } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
+
 export async function GET(request: NextRequest) {
   try {
     const db = (process.env as any).DB
@@ -72,8 +75,18 @@ export async function PUT(request: NextRequest) {
       })
     }
 
-    // Real D1 update
-    const staffId = 'user_002' // TODO: Get from session
+    // Get current user from session (must be staff-ict or admin)
+    const currentUser = requireRole(request, ['staff-ict', 'admin'])
+    if (currentUser instanceof NextResponse) {
+      return currentUser // Return error response
+    }
+
+    const staffId = currentUser.id
+
+    // Get booking details for logging
+    const tempahan = await db.prepare(
+      'SELECT * FROM tempahan WHERE id = ?'
+    ).bind(body.id).first()
 
     await db.prepare(`
       UPDATE tempahan SET
@@ -92,13 +105,23 @@ export async function PUT(request: NextRequest) {
 
     // If approved, update barang quantity
     if (body.status === 'Diluluskan') {
-      const tempahan = await db.prepare(
-        'SELECT barangId, kuantiti FROM tempahan WHERE id = ?'
-      ).bind(body.id).first()
-
       await db.prepare(
         'UPDATE barang SET kuantitiTersedia = kuantitiTersedia - ? WHERE id = ?'
       ).bind(tempahan.kuantiti, tempahan.barangId).run()
+    }
+
+    // Log the approval or rejection
+    if (tempahan) {
+      await logApproval(
+        db,
+        staffId,
+        body.status === 'Diluluskan' ? 'APPROVE' : 'REJECT',
+        'tempahan',
+        body.id,
+        tempahan,
+        body.catatan || '',
+        request
+      )
     }
 
     return NextResponse.json({

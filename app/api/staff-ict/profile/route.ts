@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
+import { logCRUD } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -118,6 +120,21 @@ export async function PUT(request: NextRequest) {
         'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
       ).bind(newHash, userId).run()
 
+      // Log password change
+      const currentUser = getCurrentUser(request)
+      if (currentUser) {
+        await logCRUD(
+          db,
+          currentUser.id,
+          'UPDATE',
+          'users',
+          userId,
+          { action: 'password_change' },
+          { action: 'password_change' },
+          request
+        )
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Password berjaya ditukar'
@@ -125,28 +142,39 @@ export async function PUT(request: NextRequest) {
     }
 
     // Handle profile update
+    // Get old data before update
+    const oldUser = await db.prepare(
+      'SELECT nama, email, fakulti, no_telefon, no_staf FROM users WHERE id = ?'
+    ).bind(userId).first()
+
     const updates: string[] = []
     const values: any[] = []
+    const newData: any = {}
 
     if (body.nama !== undefined) {
       updates.push('nama = ?')
       values.push(body.nama)
+      newData.nama = body.nama
     }
     if (body.email !== undefined) {
       updates.push('email = ?')
       values.push(body.email)
+      newData.email = body.email
     }
     if (body.fakulti !== undefined) {
       updates.push('fakulti = ?')
       values.push(body.fakulti)
+      newData.fakulti = body.fakulti
     }
     if (body.no_telefon !== undefined) {
       updates.push('no_telefon = ?')
       values.push(body.no_telefon)
+      newData.no_telefon = body.no_telefon
     }
     if (body.no_staf !== undefined) {
       updates.push('no_staf = ?')
       values.push(body.no_staf)
+      newData.no_staf = body.no_staf
     }
 
     if (updates.length === 0) {
@@ -162,6 +190,21 @@ export async function PUT(request: NextRequest) {
     await db.prepare(
       `UPDATE users SET ${updates.join(', ')} WHERE id = ?`
     ).bind(...values).run()
+
+    // Log profile update
+    const currentUser = getCurrentUser(request)
+    if (currentUser && oldUser) {
+      await logCRUD(
+        db,
+        currentUser.id,
+        'UPDATE',
+        'users',
+        userId,
+        oldUser,
+        newData,
+        request
+      )
+    }
 
     return NextResponse.json({
       success: true,

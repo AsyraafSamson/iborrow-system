@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'edge'
 import { getD1Database, type User } from '@/lib/database'
 import { verifyPassword } from '@/lib/password'
+import { createSessionToken, setSessionCookie } from '@/lib/session'
+import { logAuth } from '@/lib/activity-logger'
 
 function getRedirectPath(role: string) {
   switch (role) {
@@ -85,15 +87,46 @@ export async function POST(request: NextRequest) {
       "UPDATE users SET last_login = datetime('now') WHERE id = ?"
     ).bind(user.id).run()
 
+    // Log successful login
+    await logAuth(db, user.id, 'LOGIN', request)
+
     // Remove password from response
     const { password_hash, ...userWithoutPassword } = user
 
-    return NextResponse.json({
+    // Create session token
+    const sessionToken = createSessionToken({
+      id: user.id,
+      email: user.email,
+      nama: user.nama,
+      peranan: user.peranan,
+      fakulti: user.fakulti,
+      no_telefon: user.no_telefon,
+      no_matrik: user.no_matrik,
+      no_staf: user.no_staf
+    })
+
+    // Create response with session cookie
+    const response = NextResponse.json({
       success: true,
       user: userWithoutPassword,
+      token: sessionToken, // For frontend to use in API calls
       redirectTo: getRedirectPath(user.peranan),
       message: 'Login berjaya'
     })
+
+    // Set session cookie
+    setSessionCookie(response, {
+      id: user.id,
+      email: user.email,
+      nama: user.nama,
+      peranan: user.peranan,
+      fakulti: user.fakulti,
+      no_telefon: user.no_telefon,
+      no_matrik: user.no_matrik,
+      no_staf: user.no_staf
+    })
+
+    return response
 
   } catch (error) {
     console.error('❌ Login error:', error)

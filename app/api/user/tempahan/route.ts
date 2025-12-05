@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
+import { logCRUD } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
+
 export async function GET(request: NextRequest) {
   try {
     const db = (process.env as any).DB
@@ -29,8 +32,16 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Real D1 query
-    const userId = 'user_003' // TODO: Get from session
+    // Get current user from session
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Sila log masuk' },
+        { status: 401 }
+      )
+    }
+
+    const userId = currentUser.id
     const tempahan = await db.prepare(`
       SELECT t.*, b.namaBarang, b.kategori, b.kodBarang
       FROM tempahan t
@@ -70,9 +81,28 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Get current user from session
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Sila log masuk' },
+        { status: 401 }
+      )
+    }
+
     // Real D1 insert
     const id = 'tmp_' + Date.now()
-    const userId = body.userId || 'user_003'
+    const userId = currentUser.id
+    const newTempahanData = {
+      id,
+      userId,
+      barangId: body.barangId,
+      kuantiti: body.kuantiti || 1,
+      tarikhMula: body.tarikhMula,
+      tarikhTamat: body.tarikhTamat,
+      tujuan: body.tujuan || '',
+      status: 'Pending'
+    }
 
     await db.prepare(`
       INSERT INTO tempahan (id, userId, barangId, kuantiti, tarikhMula, tarikhTamat, tujuan, status)
@@ -80,13 +110,25 @@ export async function POST(request: NextRequest) {
     `).bind(
       id,
       userId,
-      body.barangId,
-      body.kuantiti || 1,
-      body.tarikhMula,
-      body.tarikhTamat,
-      body.tujuan || '',
-      'Pending'
+      newTempahanData.barangId,
+      newTempahanData.kuantiti,
+      newTempahanData.tarikhMula,
+      newTempahanData.tarikhTamat,
+      newTempahanData.tujuan,
+      newTempahanData.status
     ).run()
+
+    // Log the creation
+    await logCRUD(
+      db,
+      userId,
+      'CREATE',
+      'tempahan',
+      id,
+      null,
+      newTempahanData,
+      request
+    )
 
     return NextResponse.json({
       success: true,
@@ -119,10 +161,38 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
+    // Get current user for logging
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Sila log masuk' },
+        { status: 401 }
+      )
+    }
+
+    // Get old data before update
+    const oldTempahan = await db.prepare(
+      'SELECT * FROM tempahan WHERE id = ?'
+    ).bind(body.id).first()
+
     // Real D1 update
     await db.prepare(
       'UPDATE tempahan SET status = ?, updatedAt = datetime("now") WHERE id = ?'
     ).bind('Dibatalkan', body.id).run()
+
+    // Log the cancellation
+    if (oldTempahan) {
+      await logCRUD(
+        db,
+        currentUser.id,
+        'UPDATE',
+        'tempahan',
+        body.id,
+        { status: oldTempahan.status },
+        { status: 'Dibatalkan' },
+        request
+      )
+    }
 
     return NextResponse.json({
       success: true,

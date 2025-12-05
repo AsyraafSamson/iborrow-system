@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/session'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -19,8 +20,16 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Real D1 query
-    const userId = 'user_003' // TODO: Get from session/auth
+    // Get current user from session
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Sila log masuk' },
+        { status: 401 }
+      )
+    }
+
+    const userId = currentUser.id
     const stats = await db.prepare(`
       SELECT
         (SELECT COUNT(*) FROM tempahan WHERE userId = ?) as totalTempahan,
