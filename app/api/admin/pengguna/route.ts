@@ -234,11 +234,41 @@ export async function DELETE(request: NextRequest) {
 
     // Bulk delete
     if (Array.isArray(body.ids)) {
+      // Check for active dependencies first
+      const usersWithActiveDeps: string[] = []
+      
+      for (const id of body.ids) {
+        const activeBookings = await db.prepare(
+          "SELECT COUNT(*) as count FROM tempahan WHERE (userId = ? OR diluluskanOleh = ?) AND status IN ('Pending','Diluluskan','Dipinjam')"
+        ).bind(id, id).first()
+        
+        if (activeBookings && activeBookings.count > 0) {
+          const user = await db.prepare('SELECT nama FROM users WHERE id = ?').bind(id).first()
+          usersWithActiveDeps.push(user?.nama || id)
+        }
+      }
+      
+      if (usersWithActiveDeps.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Tidak boleh padam pengguna yang mempunyai tempahan aktif: ${usersWithActiveDeps.join(', ')}`,
+            deletionPath: 'bulk'
+          },
+          { status: 400 }
+        )
+      }
+
       for (const id of body.ids) {
         // Get old data before delete
         const oldUser = await db.prepare(
           'SELECT id, nama, email, peranan FROM users WHERE id = ?'
         ).bind(id).first()
+
+        // Clean up FK references
+        await db.prepare("DELETE FROM tempahan WHERE (userId = ? OR diluluskanOleh = ?) AND status NOT IN ('Pending','Diluluskan','Dipinjam')").bind(id, id).run()
+        await db.prepare('DELETE FROM log_aktiviti WHERE userId = ?').bind(id).run()
+        await db.prepare('UPDATE barang SET createdBy = NULL WHERE createdBy = ?').bind(id).run()
 
         await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run()
 
@@ -258,14 +288,37 @@ export async function DELETE(request: NextRequest) {
       }
       return NextResponse.json({
         success: true,
-        message: `${body.ids.length} pengguna berjaya dipadam`
+        message: `${body.ids.length} pengguna berjaya dipadam`,
+        deletionPath: 'bulk'
       })
+    }
+
+    // Single delete - Check for active dependencies first
+    const activeBookings = await db.prepare(
+      "SELECT COUNT(*) as count FROM tempahan WHERE (userId = ? OR diluluskanOleh = ?) AND status IN ('Pending','Diluluskan','Dipinjam')"
+    ).bind(body.id, body.id).first()
+    
+    if (activeBookings && activeBookings.count > 0) {
+      const user = await db.prepare('SELECT nama FROM users WHERE id = ?').bind(body.id).first()
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Tidak boleh padam "${user?.nama || 'pengguna ini'}" kerana mempunyai ${activeBookings.count} tempahan aktif`,
+          deletionPath: 'single'
+        },
+        { status: 400 }
+      )
     }
 
     // Single delete - Get old data first
     const oldUser = await db.prepare(
       'SELECT id, nama, email, peranan FROM users WHERE id = ?'
     ).bind(body.id).first()
+
+    // Clean up FK references
+    await db.prepare("DELETE FROM tempahan WHERE (userId = ? OR diluluskanOleh = ?) AND status NOT IN ('Pending','Diluluskan','Dipinjam')").bind(body.id, body.id).run()
+    await db.prepare('DELETE FROM log_aktiviti WHERE userId = ?').bind(body.id).run()
+    await db.prepare('UPDATE barang SET createdBy = NULL WHERE createdBy = ?').bind(body.id).run()
 
     await db.prepare('DELETE FROM users WHERE id = ?').bind(body.id).run()
 
@@ -285,7 +338,8 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Pengguna berjaya dipadam'
+      message: 'Pengguna berjaya dipadam',
+      deletionPath: 'single'
     })
 
   } catch (error) {
