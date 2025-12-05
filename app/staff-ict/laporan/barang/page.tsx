@@ -214,6 +214,5 @@ export default function StaffLaporanBarang() {
       </div>
         <BottomNav activeTab="laporan" />
       </div>
-    </div>
   )
 }

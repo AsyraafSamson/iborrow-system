@@ -40,3 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 # Force redeploy - Activity logging update
+
+# Windows reserved device file accidentally created
+nul
+NUL

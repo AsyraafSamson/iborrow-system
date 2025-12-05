@@ -235,6 +235,5 @@ export default function StaffLaporanTempahan() {
       </div>
         <BottomNav activeTab="laporan" />
       </div>
-    </div>
   )
 }

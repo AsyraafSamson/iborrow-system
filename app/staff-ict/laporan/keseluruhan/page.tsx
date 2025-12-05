@@ -193,6 +193,5 @@ export default function StaffLaporanKeseluruhan() {
       </div>
         <BottomNav activeTab="laporan" />
       </div>
-    </div>
   )
 }
