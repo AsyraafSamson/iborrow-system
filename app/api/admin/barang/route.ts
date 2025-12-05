@@ -319,6 +319,11 @@ export async function DELETE(request: NextRequest) {
           'SELECT id, namaBarang, kategori, kodBarang FROM barang WHERE id = ?'
         ).bind(id).first()
 
+        // Delete inactive tempahan first to avoid FK constraint errors
+        await db.prepare(
+          "DELETE FROM tempahan WHERE barangId = ? AND status NOT IN ('Pending','Diluluskan','Dipinjam')"
+        ).bind(id).run()
+
         await db.prepare('DELETE FROM barang WHERE id = ?').bind(id).run()
 
         // Log each deletion
@@ -394,6 +399,12 @@ export async function DELETE(request: NextRequest) {
       const oldBarang = await db.prepare(
         'SELECT id, namaBarang, kategori, kodBarang FROM barang WHERE id = ?'
       ).bind(body.id).first()
+
+      // Delete inactive tempahan first to avoid FK constraint errors
+      // Keep active bookings intact (they should have been checked above)
+      await db.prepare(
+        "DELETE FROM tempahan WHERE barangId = ? AND status NOT IN ('Pending','Diluluskan','Dipinjam')"
+      ).bind(body.id).run()
 
       await db.prepare(
         'DELETE FROM barang WHERE id = ?'
