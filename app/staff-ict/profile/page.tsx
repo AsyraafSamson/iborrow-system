@@ -130,9 +130,25 @@ export default function StaffProfile() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('user')
-    router.push('/login')
+  const handleLogout = async () => {
+    try {
+      // Call logout API to log the LOGOUT event
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      // Clear local storage and redirect
+      localStorage.removeItem('user')
+      localStorage.removeItem('session_token')
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Still logout even if API fails
+      localStorage.removeItem('user')
+      localStorage.removeItem('session_token')
+      router.push('/login')
+    }
   }
 
   if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
