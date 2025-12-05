@@ -32,8 +32,15 @@ export async function POST(request: NextRequest) {
 
     // Get D1 database using helper function
     const db = getD1Database()
+    
+    console.log('🔍 Login API - D1 Database check:', {
+      dbExists: !!db,
+      envDB: !!(process.env as any).DB,
+      dbType: typeof (process.env as any).DB
+    })
 
     if (!db) {
+      console.log('❌ D1 Database not available, using fallback')
       return NextResponse.json(
         {
           success: false,
@@ -42,6 +49,8 @@ export async function POST(request: NextRequest) {
         { status: 503 }
       )
     }
+    
+    console.log('✅ D1 Database connected, attempting login for:', email)
 
     // Query D1 database for user by email only
     const user = await db.prepare(
