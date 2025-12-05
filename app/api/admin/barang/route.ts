@@ -306,7 +306,8 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: `Tidak boleh padam barang yang mempunyai tempahan aktif: ${itemsWithBookings.join(', ')}`
+            error: `Tidak boleh padam barang yang mempunyai tempahan aktif: ${itemsWithBookings.join(', ')}`,
+            deletionPath: 'bulk'
           },
           { status: 400 }
         )
@@ -337,7 +338,8 @@ export async function DELETE(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `${body.ids.length} barang berjaya dipadam`
+        message: `${body.ids.length} barang berjaya dipadam`,
+        deletionPath: 'bulk'
       })
     }
 
@@ -374,6 +376,7 @@ export async function DELETE(request: NextRequest) {
           {
             success: false,
             error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${tempahanList.results.length} tempahan aktif (${statusText})`,
+            deletionPath: 'single',
             tempahan: tempahanList.results.map((t: any) => ({
               userName: t.userName,
               userEmail: t.userEmail,
@@ -412,7 +415,8 @@ export async function DELETE(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Barang berjaya dipadam'
+        message: 'Barang berjaya dipadam',
+        deletionPath: 'single'
       })
     }
 
