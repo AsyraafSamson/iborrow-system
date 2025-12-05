@@ -8,5 +8,5 @@ binding = "DB"
 database_name = "iborrow"
 database_id = "51ddaea3-c7f4-4c5c-ad87-0a4e592e0154"
 
-# Pages build output directory
-pages_build_output_dir = ".next"
+# Pages build output directory (not used by GitHub Actions, configure in dashboard)
+# pages_build_output_dir = ".next"
