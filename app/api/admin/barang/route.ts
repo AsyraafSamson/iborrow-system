@@ -286,7 +286,33 @@ export async function DELETE(request: NextRequest) {
 
     // Bulk delete
     if (body.ids && Array.isArray(body.ids)) {
-      // Get old data for each item before deletion
+      // Check each item for active tempahan
+      const itemsWithBookings: string[] = []
+
+      for (const id of body.ids) {
+        const bookingCheck = await db.prepare(
+          'SELECT COUNT(*) as count FROM tempahan WHERE barangId = ?'
+        ).bind(id).first()
+
+        if (bookingCheck && bookingCheck.count > 0) {
+          const barang = await db.prepare(
+            'SELECT namaBarang FROM barang WHERE id = ?'
+          ).bind(id).first()
+          itemsWithBookings.push(barang?.namaBarang || id)
+        }
+      }
+
+      if (itemsWithBookings.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Tidak boleh padam barang yang mempunyai rekod tempahan: ${itemsWithBookings.join(', ')}`
+          },
+          { status: 400 }
+        )
+      }
+
+      // Delete items that passed the check
       for (const id of body.ids) {
         const oldBarang = await db.prepare(
           'SELECT id, namaBarang, kategori, kodBarang FROM barang WHERE id = ?'
@@ -315,8 +341,27 @@ export async function DELETE(request: NextRequest) {
       })
     }
 
-    // Single delete - Get old data first
+    // Single delete - Check for active tempahan first
     if (body.id) {
+      // Check if barang has any tempahan records
+      const bookingCheck = await db.prepare(
+        'SELECT COUNT(*) as count FROM tempahan WHERE barangId = ?'
+      ).bind(body.id).first()
+
+      if (bookingCheck && bookingCheck.count > 0) {
+        const barang = await db.prepare(
+          'SELECT namaBarang FROM barang WHERE id = ?'
+        ).bind(body.id).first()
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${bookingCheck.count} rekod tempahan`
+          },
+          { status: 400 }
+        )
+      }
+
       const oldBarang = await db.prepare(
         'SELECT id, namaBarang, kategori, kodBarang FROM barang WHERE id = ?'
       ).bind(body.id).first()
@@ -353,12 +398,19 @@ export async function DELETE(request: NextRequest) {
       { status: 400 }
     )
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Admin barang DELETE error:', error)
+
+    // Provide more specific error message
+    let errorMessage = 'Ralat sistem semasa memadam barang'
+    if (error.message && error.message.includes('FOREIGN KEY')) {
+      errorMessage = 'Tidak boleh padam barang yang mempunyai rekod tempahan'
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: 'Internal server error'
+        error: errorMessage
       },
       { status: 500 }
     )
