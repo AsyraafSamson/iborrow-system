@@ -224,6 +224,10 @@ export default function AdminBarang() {
 
   const kategoriList = Array.from(new Set(barang.map(b => b.kategori)))
 
+  // Derive active tempahan to align UI with server logic
+  const activeStatuses = ['Pending','Diluluskan','Dipinjam']
+  const activeTempahan = (tempahanDetails || []).filter(t => activeStatuses.includes(t.status))
+
   if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
 
   return (
@@ -511,7 +515,7 @@ export default function AdminBarang() {
                       Tidak Boleh Padam Barang
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                      Barang ini mempunyai {tempahanDetails.length} rekod tempahan
+                      Barang ini mempunyai {activeTempahan.length} tempahan aktif
                     </p>
                   </div>
                   <button
@@ -524,7 +528,7 @@ export default function AdminBarang() {
                   </button>
                 </div>
 
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                   <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
@@ -533,8 +537,8 @@ export default function AdminBarang() {
                     </div>
                     <div className="ml-3">
                       <p className="text-sm text-yellow-700">
-                        Barang ini tidak boleh dipadam kerana mempunyai rekod tempahan.
-                        Sila selesaikan atau batalkan tempahan terlebih dahulu.
+                        Barang ini tidak boleh dipadam kerana mempunyai tempahan aktif.
+                        Sila selesaikan atau batalkan tempahan aktif terlebih dahulu.
                       </p>
                     </div>
                   </div>
@@ -552,7 +556,7 @@ export default function AdminBarang() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {tempahanDetails.map((tempahan, index) => (
+                      {activeTempahan.map((tempahan, index) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-4 py-4">
                             <div>
@@ -565,8 +569,7 @@ export default function AdminBarang() {
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                               tempahan.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
                               tempahan.status === 'Diluluskan' ? 'bg-green-100 text-green-800' :
-                              tempahan.status === 'Ditolak' ? 'bg-red-100 text-red-800' :
-                              tempahan.status === 'Selesai' ? 'bg-blue-100 text-blue-800' :
+                               tempahan.status === 'Selesai' ? 'bg-blue-100 text-blue-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {tempahan.status}
@@ -594,7 +597,7 @@ export default function AdminBarang() {
                   >
                     Tutup
                   </button>
-                </div>
+                   </div>
               </div>
             </div>
           </div>
