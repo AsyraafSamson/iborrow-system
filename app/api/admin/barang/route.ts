@@ -343,20 +343,45 @@ export async function DELETE(request: NextRequest) {
 
     // Single delete - Check for active tempahan first
     if (body.id) {
-      // Check if barang has any tempahan records
-      const bookingCheck = await db.prepare(
-        'SELECT COUNT(*) as count FROM tempahan WHERE barangId = ?'
-      ).bind(body.id).first()
+      // Get tempahan details with user info
+      const tempahanList = await db.prepare(`
+        SELECT
+          t.id, t.status, t.tarikhMula, t.tarikhTamat, t.kuantiti,
+          u.nama as userName, u.email as userEmail, u.peranan
+        FROM tempahan t
+        JOIN users u ON t.userId = u.id
+        WHERE t.barangId = ?
+        ORDER BY t.createdAt DESC
+      `).bind(body.id).all()
 
-      if (bookingCheck && bookingCheck.count > 0) {
+      if (tempahanList.results && tempahanList.results.length > 0) {
         const barang = await db.prepare(
           'SELECT namaBarang FROM barang WHERE id = ?'
         ).bind(body.id).first()
 
+        // Group by status for summary
+        const statusSummary = tempahanList.results.reduce((acc: any, t: any) => {
+          acc[t.status] = (acc[t.status] || 0) + 1
+          return acc
+        }, {})
+
+        const statusText = Object.entries(statusSummary)
+          .map(([status, count]) => `${count} ${status}`)
+          .join(', ')
+
         return NextResponse.json(
           {
             success: false,
-            error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${bookingCheck.count} rekod tempahan`
+            error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${tempahanList.results.length} rekod tempahan (${statusText})`,
+            tempahan: tempahanList.results.map((t: any) => ({
+              userName: t.userName,
+              userEmail: t.userEmail,
+              peranan: t.peranan,
+              status: t.status,
+              tarikhMula: t.tarikhMula,
+              tarikhTamat: t.tarikhTamat,
+              kuantiti: t.kuantiti
+            }))
           },
           { status: 400 }
         )

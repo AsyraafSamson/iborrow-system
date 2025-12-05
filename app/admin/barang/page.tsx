@@ -30,6 +30,8 @@ export default function AdminBarang() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterKategori, setFilterKategori] = useState('all')
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [showTempahanModal, setShowTempahanModal] = useState(false)
+  const [tempahanDetails, setTempahanDetails] = useState<any[]>([])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -116,7 +118,13 @@ export default function AdminBarang() {
         alert(data.message)
         fetchBarang()
       } else {
-        alert(data.error || 'Gagal padam')
+        // If there are tempahan details, show modal
+        if (data.tempahan && data.tempahan.length > 0) {
+          setTempahanDetails(data.tempahan)
+          setShowTempahanModal(true)
+        } else {
+          alert(data.error || 'Gagal padam')
+        }
       }
     } catch (error) {
       console.error('Error:', error)
@@ -487,6 +495,106 @@ export default function AdminBarang() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tempahan Details Modal */}
+        {showTempahanModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Tidak Boleh Padam Barang
+                    </h2>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Barang ini mempunyai {tempahanDetails.length} rekod tempahan
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowTempahanModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                        Barang ini tidak boleh dipadam kerana mempunyai rekod tempahan.
+                        Sila selesaikan atau batalkan tempahan terlebih dahulu.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pemohon</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peranan</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kuantiti</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tarikh</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {tempahanDetails.map((tempahan, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{tempahan.userName}</div>
+                              <div className="text-sm text-gray-500">{tempahan.userEmail}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-gray-900">{tempahan.peranan}</td>
+                          <td className="px-4 py-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              tempahan.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                              tempahan.status === 'Diluluskan' ? 'bg-green-100 text-green-800' :
+                              tempahan.status === 'Ditolak' ? 'bg-red-100 text-red-800' :
+                              tempahan.status === 'Selesai' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {tempahan.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-gray-900">{tempahan.kuantiti}</td>
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            <div>
+                              <div>{new Date(tempahan.tarikhMula).toLocaleDateString('ms-MY')}</div>
+                              <div className="text-xs text-gray-500">
+                                hingga {new Date(tempahan.tarikhTamat).toLocaleDateString('ms-MY')}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => setShowTempahanModal(false)}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Tutup
+                  </button>
+                </div>
               </div>
             </div>
           </div>
