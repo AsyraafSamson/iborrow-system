@@ -84,26 +84,6 @@ export default function AdminDashboard() {
     }
   }, [user])
 
-  const handleLogout = async () => {
-    try {
-      // Call logout API to log the LOGOUT event
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-
-      // Clear local storage and redirect
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Still logout even if API fails
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    }
-  }
 
   if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
 
@@ -111,17 +91,9 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 p-3 pb-24">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Dashboard Admin</h1>
-            <p className="text-sm text-gray-600">Selamat datang, {user.nama}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
-          >
-            Logout
-          </button>
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Admin</h1>
+          <p className="text-sm text-gray-600">Selamat datang, {user.nama}</p>
         </div>
 
         {/* Dashboard Stats */}

@@ -131,26 +131,6 @@ export default function AdminProfile() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      // Call logout API to log the LOGOUT event
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-
-      // Clear local storage and redirect
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Still logout even if API fails
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    }
-  }
 
   if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
 
@@ -159,18 +139,8 @@ export default function AdminProfile() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Profil Admin</h1>
-              <p className="text-sm text-gray-600">Urus maklumat profil anda</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-600"
-            >
-              Log Keluar
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Profil Admin</h1>
+          <p className="text-sm text-gray-600">Urus maklumat profil anda</p>
         </div>
 
         {/* Message */}
