@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 interface Barang {
   id: string
@@ -300,12 +301,7 @@ export default function UserBarang() {
         )}
 
         {/* Bottom Nav */}
-        <div className="fixed bottom-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-3 flex justify-around">
-          <Link href="/user/dashboard" className="flex flex-col items-center text-gray-600"><div>📊</div><div className="text-xs">Dashboard</div></Link>
-          <Link href="/user/barang" className="flex flex-col items-center text-blue-600"><div>📦</div><div className="text-xs">Barang</div></Link>
-          <Link href="/user/sejarah" className="flex flex-col items-center text-gray-600"><div>📜</div><div className="text-xs">Sejarah</div></Link>
-          <Link href="/user/profile" className="flex flex-col items-center text-gray-600"><div>👤</div><div className="text-xs">Profil</div></Link>
-        </div>
+        <BottomNav activeTab="barang" />
       </div>
     </div>
   )

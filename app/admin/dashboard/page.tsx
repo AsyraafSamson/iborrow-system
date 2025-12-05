@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -190,32 +191,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-3 flex justify-around items-center">
-          <Link href="/admin/dashboard" className="flex flex-col items-center text-blue-600">
-            <div className="text-xl">📊</div>
-            <div className="text-xs">Dashboard</div>
-          </Link>
-          <Link href="/admin/pengguna" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">👥</div>
-            <div className="text-xs">Pengguna</div>
-          </Link>
-          <Link href="/admin/barang" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">📦</div>
-            <div className="text-xs">Barang</div>
-          </Link>
-          <Link href="/admin/laporan" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">📈</div>
-            <div className="text-xs">Laporan</div>
-          </Link>
-          <Link href="/admin/tetapan/sistem" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">⚙️</div>
-            <div className="text-xs">Tetapan</div>
-          </Link>
-          <Link href="/admin/profile" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">👤</div>
-            <div className="text-xs">Profil</div>
-          </Link>
-        </div>
+        <BottomNav activeTab="dashboard" />
       </div>
     </div>
   )

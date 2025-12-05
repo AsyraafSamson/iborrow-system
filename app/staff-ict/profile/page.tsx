@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import BottomNav from '@/components/BottomNav'
 
 export default function StaffProfile() {
   const router = useRouter()
@@ -355,28 +356,7 @@ export default function StaffProfile() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="fixed bottom-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-3 flex justify-around items-center">
-          <Link href="/staff-ict/dashboard" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">📊</div>
-            <div className="text-xs">Dashboard</div>
-          </Link>
-          <Link href="/staff-ict/kelulusan" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">✅</div>
-            <div className="text-xs">Kelulusan</div>
-          </Link>
-          <Link href="/staff-ict/barang" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">📦</div>
-            <div className="text-xs">Barang</div>
-          </Link>
-          <Link href="/staff-ict/laporan/keseluruhan" className="flex flex-col items-center text-gray-600">
-            <div className="text-xl">📈</div>
-            <div className="text-xs">Laporan</div>
-          </Link>
-          <Link href="/staff-ict/profile" className="flex flex-col items-center text-blue-600">
-            <div className="text-xl">👤</div>
-            <div className="text-xs">Profil</div>
-          </Link>
-        </div>
+        <BottomNav activeTab="profile" />
       </div>
     </div>
   )
