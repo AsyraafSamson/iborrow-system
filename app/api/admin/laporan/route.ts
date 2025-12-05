@@ -24,18 +24,36 @@ export async function GET(request: NextRequest) {
     switch (reportType) {
       case 'summary':
         // Overall summary statistics
-        reportData = await db.prepare(`
+        const summaryData = await db.prepare(`
           SELECT
             (SELECT COUNT(*) FROM users) as totalUsers,
             (SELECT COUNT(*) FROM users WHERE status = 'aktif') as activeUsers,
             (SELECT COUNT(*) FROM barang) as totalBarang,
             (SELECT COUNT(*) FROM barang WHERE status = 'Tersedia') as availableBarang,
+            (SELECT SUM(kuantitiTotal) FROM barang) as totalBarangQuantity,
+            (SELECT SUM(kuantitiTersedia) FROM barang) as availableBarangQuantity,
             (SELECT COUNT(*) FROM tempahan) as totalTempahan,
             (SELECT COUNT(*) FROM tempahan WHERE status = 'Pending') as pendingTempahan,
             (SELECT COUNT(*) FROM tempahan WHERE status = 'Diluluskan') as approvedTempahan,
             (SELECT COUNT(*) FROM tempahan WHERE status = 'Ditolak') as rejectedTempahan,
+            (SELECT COUNT(*) FROM tempahan WHERE strftime('%Y-%m', createdAt) = strftime('%Y-%m', 'now')) as tempahanBulanIni,
+            (SELECT COUNT(*) FROM log_aktiviti WHERE date(createdAt) = date('now')) as penggunaAktifHariIni,
             (SELECT COUNT(*) FROM log_aktiviti) as totalActivities
         `).first()
+
+        // Calculate percentages
+        const kadarKelulusan = summaryData.totalTempahan > 0
+          ? Math.round((summaryData.approvedTempahan / summaryData.totalTempahan) * 100)
+          : 0
+        const barangTersediaPercent = summaryData.totalBarangQuantity > 0
+          ? Math.round((summaryData.availableBarangQuantity / summaryData.totalBarangQuantity) * 100)
+          : 0
+
+        reportData = {
+          ...summaryData,
+          kadarKelulusan,
+          barangTersediaPercent
+        }
         break
 
       case 'barang-popular':
@@ -182,10 +200,16 @@ function getMockReportData(type: string) {
         activeUsers: 42,
         totalBarang: 128,
         availableBarang: 95,
+        totalBarangQuantity: 250,
+        availableBarangQuantity: 195,
         totalTempahan: 156,
         pendingTempahan: 8,
         approvedTempahan: 120,
         rejectedTempahan: 12,
+        tempahanBulanIni: 85,
+        penggunaAktifHariIni: 18,
+        kadarKelulusan: 77,
+        barangTersediaPercent: 78,
         totalActivities: 450
       }
     case 'barang-popular':

@@ -12,11 +12,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: {
-          maxBookingDays: 7,
+          systemName: 'iBorrow - Sistem Peminjaman ICT',
+          organization: 'Institut Kementerian Kesihatan Malaysia JB',
+          adminEmail: 'admin@ikmjb.edu.my',
+          maxBorrowDays: 7,
           autoApprovalEnabled: false,
+          maxItemsPerUser: 3,
           emailNotificationsEnabled: true,
           overdueReminderDays: 1,
-          maxBookingPerUser: 3,
           systemMaintenance: false,
           maintenanceMessage: 'Sistem dalam penyelenggaraan',
           bookingTimeStart: '08:00',
