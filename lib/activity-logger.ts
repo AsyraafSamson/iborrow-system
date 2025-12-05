@@ -64,21 +64,25 @@ export async function logActivity(
       timestamp: new Date().toISOString()
     }
 
-    // Insert into log_aktiviti table
+    // Build keterangan (description) from action and table
+    const keterangan = recordId
+      ? `${action} ${tableName} [${recordId}]`
+      : `${action} ${tableName}`
+
+    // Generate unique ID
+    const logId = 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+
+    // Insert into log_aktiviti table with correct column names
     await db.prepare(`
       INSERT INTO log_aktiviti (
-        user_id, user_name, action, table_name, record_id, 
-        old_data, new_data, ip_address, user_agent, timestamp
+        id, userId, jenisAktiviti, keterangan, ipAddress, userAgent
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      VALUES (?, ?, ?, ?, ?, ?)
     `).bind(
+      logId,
       logData.user_id,
-      logData.user_name,
       logData.action,
-      logData.table_name,
-      logData.record_id,
-      logData.old_data,
-      logData.new_data,
+      keterangan,
       logData.ip_address,
       logData.user_agent
     ).run()
@@ -124,12 +128,13 @@ export async function logApproval(
   db: any,
   userId: string,
   action: 'APPROVE' | 'REJECT',
+  tableName: string,
   recordId: string,
   oldData?: any,
-  newData?: any,
+  catatan?: string,
   request?: Request
 ): Promise<void> {
-  return logActivity(db, userId, action, 'tempahan', recordId, oldData, newData, request)
+  return logActivity(db, userId, action, tableName, recordId, oldData, catatan, request)
 }
 
 /**
