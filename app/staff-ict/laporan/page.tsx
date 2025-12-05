@@ -25,7 +25,7 @@ export default function StaffICTLaporanIndex() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 p-3 pb-24 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Memuat...</p>
@@ -35,16 +35,15 @@ export default function StaffICTLaporanIndex() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="max-w-md mx-auto">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
-          <h1 className="text-2xl font-bold">Laporan</h1>
-          <p className="opacity-90">Pilih jenis laporan</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-3 pb-24">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-6 text-white mb-6">
+        <h1 className="text-2xl font-bold">Laporan</h1>
+        <p className="opacity-90">Pilih jenis laporan</p>
+      </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-4">
+      {/* Content */}
+      <div className="space-y-4">
           
           {/* Laporan Keseluruhan */}
           <Link href="/staff-ict/laporan/keseluruhan" 
@@ -114,7 +113,6 @@ export default function StaffICTLaporanIndex() {
 
         {/* Bottom Navigation */}
         <BottomNav activeTab="laporan" />
-      </div>
     </div>
   )
 }
