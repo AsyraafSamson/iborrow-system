@@ -291,7 +291,7 @@ export async function DELETE(request: NextRequest) {
 
       for (const id of body.ids) {
         const bookingCheck = await db.prepare(
-          'SELECT COUNT(*) as count FROM tempahan WHERE barangId = ?'
+          "SELECT COUNT(*) as count FROM tempahan WHERE barangId = ? AND status IN ('Pending','Diluluskan','Dipinjam')"
         ).bind(id).first()
 
         if (bookingCheck && bookingCheck.count > 0) {
@@ -306,7 +306,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: `Tidak boleh padam barang yang mempunyai rekod tempahan: ${itemsWithBookings.join(', ')}`
+            error: `Tidak boleh padam barang yang mempunyai tempahan aktif: ${itemsWithBookings.join(', ')}`
           },
           { status: 400 }
         )
@@ -343,7 +343,7 @@ export async function DELETE(request: NextRequest) {
 
     // Single delete - Check for active tempahan first
     if (body.id) {
-      // Get tempahan details with user info
+      // Get tempahan details with user info - only ACTIVE bookings
       const tempahanList = await db.prepare(`
         SELECT
           t.id, t.status, t.tarikhMula, t.tarikhTamat, t.kuantiti,
@@ -351,6 +351,7 @@ export async function DELETE(request: NextRequest) {
         FROM tempahan t
         JOIN users u ON t.userId = u.id
         WHERE t.barangId = ?
+          AND t.status IN ('Pending', 'Diluluskan', 'Dipinjam')
         ORDER BY t.createdAt DESC
       `).bind(body.id).all()
 
@@ -372,7 +373,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${tempahanList.results.length} rekod tempahan (${statusText})`,
+            error: `Tidak boleh padam "${barang?.namaBarang || 'barang ini'}" kerana mempunyai ${tempahanList.results.length} tempahan aktif (${statusText})`,
             tempahan: tempahanList.results.map((t: any) => ({
               userName: t.userName,
               userEmail: t.userEmail,
