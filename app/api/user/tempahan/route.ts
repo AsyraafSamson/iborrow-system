@@ -131,22 +131,22 @@ export async function POST(request: NextRequest) {
       request
     )
 
-    // Send email notification to all staff-ict
-    const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(body.barangId).first()
-    const staffEmails = await getStaffEmails(db)
-    
-    if (barang && staffEmails.length > 0) {
-      // Send to all staff members
-      for (const email of staffEmails) {
-        await sendNotificationEmail({
-          to: email,
-          userName: 'Staff ICT',
-          type: 'NEW_BOOKING',
-          itemName: barang.namaBarang,
-          message: `Peminjam: ${currentUser.nama} (${currentUser.email})`
-        })
-      }
-    }
+    // Email notifications disabled - using in-app notifications only
+    // const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(body.barangId).first()
+    // const staffEmails = await getStaffEmails(db)
+    //
+    // if (barang && staffEmails.length > 0) {
+    //   // Send to all staff members
+    //   for (const email of staffEmails) {
+    //     await sendNotificationEmail({
+    //       to: email,
+    //       userName: 'Staff ICT',
+    //       type: 'NEW_BOOKING',
+    //       itemName: barang.namaBarang,
+    //       message: `Peminjam: ${currentUser.nama} (${currentUser.email})`
+    //     })
+    //   }
+    // }
 
     return NextResponse.json({
       success: true,

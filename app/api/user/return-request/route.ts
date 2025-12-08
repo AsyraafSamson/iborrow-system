@@ -92,17 +92,17 @@ export async function POST(request: NextRequest) {
         'RETURN_NOTIFICATION',
         `🔔 ${currentUser.nama} wants to return ${booking.namaBarang} (${booking.kuantiti} unit)`
       ).run()
-      
-      // Send email notification to staff
-      if (staff.email) {
-        await sendNotificationEmail({
-          to: staff.email,
-          userName: staff.nama,
-          type: 'RETURN_REQUEST',
-          itemName: booking.namaBarang,
-          message: `${currentUser.nama} (${currentUser.email}) - ${urgency === 'urgent' ? '🔴 URGENT' : 'Normal'}: ${notes || ''}`
-        })
-      }
+
+      // Email notifications disabled - using in-app notifications only
+      // if (staff.email) {
+      //   await sendNotificationEmail({
+      //     to: staff.email,
+      //     userName: staff.nama,
+      //     type: 'RETURN_REQUEST',
+      //     itemName: booking.namaBarang,
+      //     message: `${currentUser.nama} (${currentUser.email}) - ${urgency === 'urgent' ? '🔴 URGENT' : 'Normal'}: ${notes || ''}`
+      //   })
+      // }
     }
 
     // Log user activity

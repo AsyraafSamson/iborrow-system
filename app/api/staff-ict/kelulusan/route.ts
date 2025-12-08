@@ -134,19 +134,19 @@ export async function PUT(request: NextRequest) {
         request
       )
 
-      // Send email notification to user about return
-      const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
-      const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
-      
-      if (user && user.email && barang) {
-        await sendNotificationEmail({
-          to: user.email,
-          userName: user.nama,
-          type: 'RETURN_UPDATE',
-          itemName: barang.namaBarang,
-          message: body.catatan || 'Barang telah dikembalikan dengan jayanya'
-        })
-      }
+      // Email notifications disabled - using in-app notifications only
+      // const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
+      // const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
+      //
+      // if (user && user.email && barang) {
+      //   await sendNotificationEmail({
+      //     to: user.email,
+      //     userName: user.nama,
+      //     type: 'RETURN_UPDATE',
+      //     itemName: barang.namaBarang,
+      //     message: body.catatan || 'Barang telah dikembalikan dengan jayanya'
+      //   })
+      // }
 
       return NextResponse.json({
         success: true,
@@ -191,21 +191,21 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Send email notification to user
-    if (body.status === 'Diluluskan' || body.status === 'Ditolak') {
-      const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
-      const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
-      
-      if (user && user.email && barang) {
-        await sendNotificationEmail({
-          to: user.email,
-          userName: user.nama,
-          type: body.status === 'Diluluskan' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
-          itemName: barang.namaBarang,
-          message: body.catatan || ''
-        })
-      }
-    }
+    // Email notifications disabled - using in-app notifications only
+    // if (body.status === 'Diluluskan' || body.status === 'Ditolak') {
+    //   const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
+    //   const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
+    //
+    //   if (user && user.email && barang) {
+    //     await sendNotificationEmail({
+    //       to: user.email,
+    //       userName: user.nama,
+    //       type: body.status === 'Diluluskan' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
+    //       itemName: barang.namaBarang,
+    //       message: body.catatan || ''
+    //     })
+    //   }
+    // }
 
     return NextResponse.json({
       success: true,
