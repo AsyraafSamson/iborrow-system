@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
-import { sendNotificationEmail } from '@/lib/email'
+import { sendNotificationEmail, getStaffUsers } from '@/lib/email'
 
 export const runtime = 'edge'
 
@@ -77,15 +77,11 @@ export async function POST(request: NextRequest) {
       notes || ''
     ).run()
 
-    // Get all staff ICT and admin users
-    const staffUsers = await db.prepare(`
-      SELECT id, email, nama FROM users
-      WHERE peranan IN ('staff-ict', 'admin')
-      AND status = 'aktif'
-    `).all()
+    // Get all active staff-ict users (excludes admin)
+    const staffUsers = await getStaffUsers(db)
 
     // Create notification in activity log for each staff
-    for (const staff of staffUsers.results) {
+    for (const staff of staffUsers) {
       await db.prepare(`
         INSERT INTO log_aktiviti (
           id, userId, jenisAktiviti, keterangan, createdAt
@@ -125,7 +121,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Return request submitted. Staff will be notified.',
       requestId,
-      staffCount: staffUsers.results.length
+      staffCount: staffUsers.length
     })
 
   } catch (error) {

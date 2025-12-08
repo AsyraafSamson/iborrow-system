@@ -153,12 +153,35 @@ export async function getStaffEmails(db: any): Promise<string[]> {
     }
 
     const result = await db.prepare(`
-      SELECT email FROM users WHERE peranan = 'staff-ict'
+      SELECT email FROM users
+      WHERE peranan = 'staff-ict'
+      AND status = 'aktif'
+      AND email IS NOT NULL
     `).all()
 
     return result.results.map((user: any) => user.email).filter((email: string) => email)
   } catch (error) {
     console.error('Error fetching staff emails:', error)
+    return []
+  }
+}
+
+// Helper to get full staff user objects (for in-app notifications)
+export async function getStaffUsers(db: any): Promise<any[]> {
+  try {
+    if (!db || typeof db.prepare !== 'function') {
+      return []
+    }
+
+    const result = await db.prepare(`
+      SELECT id, email, nama FROM users
+      WHERE peranan = 'staff-ict'
+      AND status = 'aktif'
+    `).all()
+
+    return result.results || []
+  } catch (error) {
+    console.error('Error fetching staff users:', error)
     return []
   }
 }
