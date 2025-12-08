@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, requireRole } from '@/lib/session'
 import { logApproval } from '@/lib/activity-logger'
+import { sendNotificationEmail } from '@/lib/email'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -133,6 +134,20 @@ export async function PUT(request: NextRequest) {
         request
       )
 
+      // Send email notification to user about return
+      const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
+      const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
+      
+      if (user && user.email && barang) {
+        await sendNotificationEmail({
+          to: user.email,
+          userName: user.nama,
+          type: 'RETURN_UPDATE',
+          itemName: barang.namaBarang,
+          message: body.catatan || 'Barang telah dikembalikan dengan jayanya'
+        })
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Barang berjaya dikembalikan. Kuantiti telah dipulihkan.'
@@ -174,6 +189,22 @@ export async function PUT(request: NextRequest) {
         body.catatan || '',
         request
       )
+    }
+
+    // Send email notification to user
+    if (body.status === 'Diluluskan' || body.status === 'Ditolak') {
+      const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
+      const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
+      
+      if (user && user.email && barang) {
+        await sendNotificationEmail({
+          to: user.email,
+          userName: user.nama,
+          type: body.status === 'Diluluskan' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
+          itemName: barang.namaBarang,
+          message: body.catatan || ''
+        })
+      }
     }
 
     return NextResponse.json({

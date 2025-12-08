@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
+import { sendNotificationEmail, getStaffEmails } from '@/lib/email'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -129,6 +130,23 @@ export async function POST(request: NextRequest) {
       newTempahanData,
       request
     )
+
+    // Send email notification to all staff-ict
+    const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(body.barangId).first()
+    const staffEmails = await getStaffEmails(db)
+    
+    if (barang && staffEmails.length > 0) {
+      // Send to all staff members
+      for (const email of staffEmails) {
+        await sendNotificationEmail({
+          to: email,
+          userName: 'Staff ICT',
+          type: 'NEW_BOOKING',
+          itemName: barang.namaBarang,
+          message: `Peminjam: ${currentUser.nama} (${currentUser.email})`
+        })
+      }
+    }
 
     return NextResponse.json({
       success: true,
