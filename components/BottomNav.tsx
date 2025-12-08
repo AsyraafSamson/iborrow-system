@@ -10,14 +10,32 @@ interface BottomNavProps {
 export default function BottomNav({ activeTab }: BottomNavProps) {
   const router = useRouter()
   const [userRole, setUserRole] = useState<string>('user')
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
     if (userData) {
       const user = JSON.parse(userData)
       setUserRole(user.peranan || 'user')
+      fetchUnreadCount(user.peranan)
     }
   }, [])
+
+  const fetchUnreadCount = async (role: string) => {
+    try {
+      const endpoint = role === 'staff-ict' || role === 'admin'
+        ? '/api/staff-ict/notifikasi'
+        : '/api/user/notifikasi'
+
+      const res = await fetch(endpoint)
+      const data = await res.json()
+      if (data.success) {
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching unread count:', error)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -48,15 +66,14 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
         { href: '/admin/pengguna', icon: '👥', label: 'Pengguna' },
         { href: '/admin/barang', icon: '📦', label: 'Barang' },
         { href: '/admin/laporan', icon: '📈', label: 'Laporan' },
-        { href: '/admin/tetapan/sistem', icon: '⚙️', label: 'Tetapan' },
         { href: '/admin/profile', icon: '👤', label: 'Profil' }
       ]
     } else if (userRole === 'staff-ict') {
       return [
         { href: '/staff-ict/dashboard', icon: '📊', label: 'Dashboard' },
         { href: '/staff-ict/kelulusan', icon: '✅', label: 'Kelulusan' },
+        { href: '/staff-ict/notifikasi', icon: '🔔', label: 'Notifikasi', showBadge: true },
         { href: '/staff-ict/barang', icon: '📦', label: 'Barang' },
-        { href: '/staff-ict/laporan', icon: '📈', label: 'Laporan' },
         { href: '/staff-ict/profile', icon: '👤', label: 'Profil' }
       ]
     } else {
@@ -65,6 +82,7 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
         { href: '/user/dashboard', icon: '📊', label: 'Dashboard' },
         { href: '/user/barang', icon: '📦', label: 'Barang' },
         { href: '/user/tempahan', icon: '📋', label: 'Tempahan' },
+        { href: '/user/notifikasi', icon: '🔔', label: 'Notifikasi', showBadge: true },
         { href: '/user/profile', icon: '👤', label: 'Profil' }
       ]
     }
@@ -78,13 +96,20 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
         <Link
           key={item.href}
           href={item.href}
-          className={`flex flex-col items-center ${
+          className={`flex flex-col items-center relative ${
             activeTab === item.label.toLowerCase()
               ? 'text-blue-600'
               : 'text-gray-600 hover:text-blue-500'
           }`}
         >
-          <div className="text-xl">{item.icon}</div>
+          <div className="text-xl relative">
+            {item.icon}
+            {item.showBadge && unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
           <div className="text-xs mt-1">{item.label}</div>
         </Link>
       ))}
