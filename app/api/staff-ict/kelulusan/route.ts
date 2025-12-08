@@ -69,9 +69,15 @@ export async function PUT(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      const messages = {
+        Diluluskan: 'Tempahan diluluskan (Mock)',
+        Ditolak: 'Tempahan ditolak (Mock)',
+        Dikembalikan: 'Barang dikembalikan (Mock)',
+        Selesai: 'Tempahan selesai (Mock)'
+      }
       return NextResponse.json({
         success: true,
-        message: body.status === 'Diluluskan' ? 'Tempahan diluluskan (Mock)' : 'Tempahan ditolak (Mock)'
+        message: messages[body.status as keyof typeof messages] || 'Status dikemaskini (Mock)'
       })
     }
 
@@ -88,6 +94,52 @@ export async function PUT(request: NextRequest) {
       'SELECT * FROM tempahan WHERE id = ?'
     ).bind(body.id).first()
 
+    if (!tempahan) {
+      return NextResponse.json(
+        { success: false, error: 'Tempahan tidak dijumpai' },
+        { status: 404 }
+      )
+    }
+
+    // Handle different actions
+    if (body.action === 'return') {
+      // Return item workflow
+      // Update booking status to "Dikembalikan" first, then "Selesai"
+      await db.prepare(`
+        UPDATE tempahan SET
+          status = 'Selesai',
+          catatanKelulusan = ?,
+          updatedAt = datetime("now")
+        WHERE id = ?
+      `).bind(
+        (tempahan.catatanKelulusan || '') + '\n[Dikembalikan: ' + (body.catatan || 'Barang telah dikembalikan') + ']',
+        body.id
+      ).run()
+
+      // Restore item quantity
+      await db.prepare(
+        'UPDATE barang SET kuantitiTersedia = kuantitiTersedia + ? WHERE id = ?'
+      ).bind(tempahan.kuantiti, tempahan.barangId).run()
+
+      // Log the return
+      await logApproval(
+        db,
+        staffId,
+        'UPDATE',
+        'tempahan',
+        body.id,
+        tempahan,
+        'Barang dikembalikan: ' + (body.catatan || ''),
+        request
+      )
+
+      return NextResponse.json({
+        success: true,
+        message: 'Barang berjaya dikembalikan. Kuantiti telah dipulihkan.'
+      })
+    }
+
+    // Default approval/rejection flow
     await db.prepare(`
       UPDATE tempahan SET
         status = ?,
@@ -103,7 +155,7 @@ export async function PUT(request: NextRequest) {
       body.id
     ).run()
 
-    // If approved, update barang quantity
+    // If approved, update barang quantity (decrease)
     if (body.status === 'Diluluskan') {
       await db.prepare(
         'UPDATE barang SET kuantitiTersedia = kuantitiTersedia - ? WHERE id = ?'
