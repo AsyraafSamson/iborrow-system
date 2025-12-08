@@ -8,6 +8,7 @@ interface Notification {
   jenisAktiviti: string
   keterangan: string
   createdAt: string
+  isRead: number
 }
 
 export default function UserNotifikasi() {
@@ -40,6 +41,22 @@ export default function UserNotifikasi() {
     }
   }
 
+  const markAllAsRead = async () => {
+    try {
+      const res = await fetch('/api/user/notifikasi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAllAsRead: true })
+      })
+      if (res.ok) {
+        // Refresh notifications
+        fetchNotifications()
+      }
+    } catch (error) {
+      console.error('Error marking all as read:', error)
+    }
+  }
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'RETURN_UPDATE': return '↩️'
@@ -58,13 +75,6 @@ export default function UserNotifikasi() {
     }
   }
 
-  const isNew = (createdAt: string) => {
-    const notifTime = new Date(createdAt).getTime()
-    const now = Date.now()
-    const hoursDiff = (now - notifTime) / (1000 * 60 * 60)
-    return hoursDiff < 24
-  }
-
   if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
 
   return (
@@ -72,8 +82,20 @@ export default function UserNotifikasi() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi</h1>
-          <p className="text-sm text-gray-600">Kemaskini dan makluman untuk anda</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi</h1>
+              <p className="text-sm text-gray-600">Kemaskini dan makluman untuk anda</p>
+            </div>
+            {notifications.some(n => n.isRead === 0) && (
+              <button
+                onClick={markAllAsRead}
+                className="bg-blue-500 text-white text-sm px-3 py-2 rounded-lg hover:bg-blue-600"
+              >
+                Tandakan Semua Dibaca
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Notifications List */}
@@ -93,20 +115,22 @@ export default function UserNotifikasi() {
               <div
                 key={notif.id}
                 className={`rounded-xl shadow-sm p-4 border ${getNotificationColor(notif.jenisAktiviti)} ${
-                  isNew(notif.createdAt) ? 'border-l-4' : ''
+                  notif.isRead === 0 ? 'border-l-4 bg-blue-50' : 'bg-white opacity-60'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">{getNotificationIcon(notif.jenisAktiviti)}</div>
                   <div className="flex-1">
-                    <p className="text-gray-900">{notif.keterangan}</p>
+                    <p className={`${notif.isRead === 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                      {notif.keterangan}
+                    </p>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-xs text-gray-500">
                         {new Date(notif.createdAt).toLocaleString('ms-MY')}
                       </span>
-                      {isNew(notif.createdAt) && (
+                      {notif.isRead === 0 && (
                         <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                          BARU
+                          BELUM DIBACA
                         </span>
                       )}
                     </div>

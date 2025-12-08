@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
         id,
         jenisAktiviti,
         keterangan,
-        createdAt
+        createdAt,
+        COALESCE(isRead, 0) as isRead
       FROM log_aktiviti
       WHERE userId = ?
       AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
@@ -38,13 +39,13 @@ export async function GET(request: NextRequest) {
       LIMIT ?
     `).bind(currentUser.id, limit).all()
 
-    // Count unread (last 24 hours as "new")
+    // Count unread only (isRead = 0 or NULL)
     const unreadCount = await db.prepare(`
       SELECT COUNT(*) as count
       FROM log_aktiviti
       WHERE userId = ?
       AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
-      AND createdAt > datetime('now', '-24 hours')
+      AND COALESCE(isRead, 0) = 0
     `).bind(currentUser.id).first()
 
     return NextResponse.json({
@@ -55,6 +56,71 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Get staff notifications error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Internal server error'
+    }, { status: 500 })
+  }
+}
+
+// Mark notifications as read
+export async function POST(request: NextRequest) {
+  try {
+    const db = (process.env as any).DB
+    const currentUser = requireRole(request, ['staff-ict', 'admin'])
+
+    if (currentUser instanceof NextResponse) {
+      return currentUser
+    }
+
+    if (!db || typeof db.prepare !== 'function') {
+      return NextResponse.json({
+        success: true,
+        message: 'Marked as read (Mock)'
+      })
+    }
+
+    const body = await request.json()
+    const { notificationId, markAllAsRead } = body
+
+    if (markAllAsRead) {
+      // Mark all notifications as read for this user
+      await db.prepare(`
+        UPDATE log_aktiviti
+        SET isRead = 1
+        WHERE userId = ?
+        AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
+        AND COALESCE(isRead, 0) = 0
+      `).bind(currentUser.id).run()
+
+      return NextResponse.json({
+        success: true,
+        message: 'Semua notifikasi ditandakan sebagai dibaca'
+      })
+    }
+
+    if (notificationId) {
+      // Mark specific notification as read
+      await db.prepare(`
+        UPDATE log_aktiviti
+        SET isRead = 1
+        WHERE id = ?
+        AND userId = ?
+      `).bind(notificationId, currentUser.id).run()
+
+      return NextResponse.json({
+        success: true,
+        message: 'Notifikasi ditandakan sebagai dibaca'
+      })
+    }
+
+    return NextResponse.json({
+      success: false,
+      error: 'notificationId or markAllAsRead diperlukan'
+    }, { status: 400 })
+
+  } catch (error) {
+    console.error('Mark notification as read error:', error)
     return NextResponse.json({
       success: false,
       error: 'Internal server error'
