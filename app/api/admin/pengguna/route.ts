@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
+import { hashPassword } from '@/lib/password'
 
 // Configure for Cloudflare Pages Edge Runtime
 export const runtime = 'edge'
@@ -82,6 +83,9 @@ export async function POST(request: NextRequest) {
       status: 'aktif'
     }
 
+    // Hash default password before storing
+    const hashedPassword = await hashPassword('password123')
+
     await db.prepare(`
       INSERT INTO users (id, email, nama, peranan, fakulti, no_telefon, no_matrik, no_staf, password_hash, status)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -94,7 +98,7 @@ export async function POST(request: NextRequest) {
       body.no_telefon || '',
       body.noMatrik || null,
       body.noStaf || null,
-      'password123', // Default password
+      hashedPassword, // Hashed default password
       'aktif'
     ).run()
 
@@ -153,9 +157,12 @@ export async function PUT(request: NextRequest) {
 
     // Reset password
     if (body.action === 'reset-password') {
+      // Hash the reset password before storing
+      const hashedResetPassword = await hashPassword('password123')
+
       await db.prepare(
         'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
-      ).bind('password123', body.id).run()
+      ).bind(hashedResetPassword, body.id).run()
 
       // Log password reset
       if (currentUser && oldUser) {
