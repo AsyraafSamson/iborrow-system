@@ -75,6 +75,44 @@ export default function UserTempahan() {
     }
   }
 
+  const handleReturnRequest = async (item: Tempahan) => {
+    // Get urgency level
+    const urgency = confirm('Adakah ini permohonan pemulangan segera?') ? 'urgent' : 'normal'
+
+    // Get optional notes
+    const notes = prompt('Nota tambahan (opsional):') || ''
+
+    if (!confirm(`Hantar permohonan pemulangan untuk ${item.namaBarang}?\n\nStaff ICT akan dimaklumkan secara automatik.`)) return
+
+    setLoading(true)
+    try {
+      const response = await fetch('/api/user/return-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: item.id,
+          urgency,
+          notes
+        })
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setMessage({
+          type: 'success',
+          text: `Permohonan pemulangan berjaya dihantar! ${data.staffCount} staff telah dimaklumkan.`
+        })
+        fetchTempahan(user.id)
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Gagal hantar permohonan' })
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Ralat rangkaian' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Pending': return 'bg-yellow-100 text-yellow-800'
@@ -249,7 +287,7 @@ export default function UserTempahan() {
                     
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>Ditempah: {new Date(item.createdAt).toLocaleDateString('ms-MY')}</span>
-                      
+
                       {/* Action Buttons */}
                       {item.status === 'Pending' && (
                         <button
@@ -257,6 +295,15 @@ export default function UserTempahan() {
                           className="bg-red-100 text-red-800 px-3 py-1 rounded-lg hover:bg-red-200 text-xs"
                         >
                           ❌ Batal
+                        </button>
+                      )}
+
+                      {item.status === 'Diluluskan' && (
+                        <button
+                          onClick={() => handleReturnRequest(item)}
+                          className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 text-xs font-medium"
+                        >
+                          ↩️ Mohon Pulangkan
                         </button>
                       )}
                     </div>
