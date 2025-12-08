@@ -57,6 +57,98 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// PATCH handler specifically for password changes
+export async function PATCH(request: NextRequest) {
+  try {
+    const db = (process.env as any).DB
+    const body = await request.json()
+
+    // Mock response for local dev
+    if (!db || typeof db.prepare !== 'function') {
+      return NextResponse.json({
+        success: true,
+        message: 'Kata laluan berjaya ditukar (Mock)'
+      })
+    }
+
+    // Get current user from session
+    const currentUser = getCurrentUser(request)
+    if (!currentUser) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Sila log masuk' },
+        { status: 401 }
+      )
+    }
+
+    const { currentPassword, newPassword } = body
+
+    if (!currentPassword || !newPassword) {
+      return NextResponse.json(
+        { success: false, error: 'Kata laluan lama dan baru diperlukan' },
+        { status: 400 }
+      )
+    }
+
+    // Get current password hash
+    const user = await db.prepare(
+      'SELECT password_hash FROM users WHERE id = ?'
+    ).bind(currentUser.id).first()
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'User tidak dijumpai' },
+        { status: 404 }
+      )
+    }
+
+    // Verify current password
+    const { verifyPassword, hashPassword } = await import('@/lib/password')
+    const isValid = await verifyPassword(currentPassword, user.password_hash)
+
+    if (!isValid) {
+      return NextResponse.json(
+        { success: false, error: 'Kata laluan lama tidak betul' },
+        { status: 401 }
+      )
+    }
+
+    // Hash new password
+    const newHash = await hashPassword(newPassword)
+
+    // Update password
+    await db.prepare(
+      'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
+    ).bind(newHash, currentUser.id).run()
+
+    // Log password change
+    await logCRUD(
+      db,
+      currentUser.id,
+      'UPDATE',
+      'users',
+      currentUser.id,
+      { action: 'password_change' },
+      { action: 'password_changed' },
+      request
+    )
+
+    return NextResponse.json({
+      success: true,
+      message: 'Kata laluan berjaya ditukar'
+    })
+
+  } catch (error) {
+    console.error('Password change error:', error)
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Ralat menukar kata laluan: ' + (error instanceof Error ? error.message : 'Unknown error')
+      },
+      { status: 500 }
+    )
+  }
+}
+
 export async function PUT(request: NextRequest) {
   try {
     const db = (process.env as any).DB
@@ -79,69 +171,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Handle password change
-    if (body.action === 'change-password') {
-      const { currentPassword, newPassword } = body
-
-      if (!currentPassword || !newPassword) {
-        return NextResponse.json(
-          { success: false, error: 'Password lama dan baru diperlukan' },
-          { status: 400 }
-        )
-      }
-
-      // Get current password hash
-      const user = await db.prepare(
-        'SELECT password_hash FROM users WHERE id = ?'
-      ).bind(userId).first()
-
-      if (!user) {
-        return NextResponse.json(
-          { success: false, error: 'User tidak dijumpai' },
-          { status: 404 }
-        )
-      }
-
-      // Verify current password (you'll need to import verifyPassword and hashPassword)
-      const { verifyPassword, hashPassword } = await import('@/lib/password')
-      const isValid = await verifyPassword(currentPassword, user.password_hash)
-      if (!isValid) {
-        return NextResponse.json(
-          { success: false, error: 'Password lama tidak sah' },
-          { status: 401 }
-        )
-      }
-
-      // Hash new password
-      const newHash = await hashPassword(newPassword)
-
-      // Update password
-      await db.prepare(
-        'UPDATE users SET password_hash = ?, updated_at = datetime("now") WHERE id = ?'
-      ).bind(newHash, userId).run()
-
-      // Log password change
-      const currentUser = getCurrentUser(request)
-      if (currentUser) {
-        await logCRUD(
-          db,
-          currentUser.id,
-          'UPDATE',
-          'users',
-          userId,
-          { action: 'password_change' },
-          { action: 'password_change' },
-          request
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'Password berjaya ditukar'
-      })
-    }
-
-    // Handle profile update
+    // Handle profile update (password change now in PATCH handler)
     // Get old data before update
     const oldUser = await db.prepare(
       'SELECT nama, email, fakulti, no_telefon, no_staf FROM users WHERE id = ?'
