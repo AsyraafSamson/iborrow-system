@@ -142,6 +142,17 @@ export async function PUT(request: NextRequest) {
           await db.prepare(
             'UPDATE barang SET kuantitiTersedia = kuantitiTersedia + ? WHERE id = ?'
           ).bind(booking.kuantiti, booking.barangId).run()
+
+          // Check if item should be marked as available
+          const updatedBarang = await db.prepare(
+            'SELECT kuantitiTersedia FROM barang WHERE id = ?'
+          ).bind(booking.barangId).first()
+
+          if (updatedBarang && updatedBarang.kuantitiTersedia > 0) {
+            await db.prepare(
+              'UPDATE barang SET status = "Tersedia" WHERE id = ?'
+            ).bind(booking.barangId).run()
+          }
         }
         break
 

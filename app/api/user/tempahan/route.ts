@@ -44,9 +44,14 @@ export async function GET(request: NextRequest) {
 
     const userId = currentUser.id
     const tempahan = await db.prepare(`
-      SELECT t.*, b.namaBarang, b.kategori, b.kodBarang
+      SELECT t.*, b.namaBarang, b.kategori, b.kodBarang,
+             rr.id as returnRequestId,
+             rr.status as returnRequestStatus,
+             rr.urgency as returnRequestUrgency,
+             rr.requestedAt as returnRequestedAt
       FROM tempahan t
       JOIN barang b ON t.barangId = b.id
+      LEFT JOIN return_requests rr ON t.id = rr.bookingId AND rr.status != 'cancelled'
       WHERE t.userId = ?
       ORDER BY t.createdAt DESC
     `).bind(userId).all()

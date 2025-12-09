@@ -16,6 +16,10 @@ interface Tempahan {
   status: 'Pending' | 'Diluluskan' | 'Ditolak' | 'Selesai' | 'Dibatalkan'
   createdAt: string
   catatan?: string
+  returnRequestId?: string
+  returnRequestStatus?: 'pending' | 'acknowledged' | 'scheduled' | 'completed' | 'cancelled'
+  returnRequestUrgency?: 'normal' | 'urgent'
+  returnRequestedAt?: string
 }
 
 export default function UserTempahan() {
@@ -298,13 +302,33 @@ export default function UserTempahan() {
                         </button>
                       )}
 
-                      {item.status === 'Diluluskan' && (
+                      {item.status === 'Diluluskan' && !item.returnRequestId && (
                         <button
                           onClick={() => handleReturnRequest(item)}
                           className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 text-xs font-medium"
                         >
                           ↩️ Mohon Pulangkan
                         </button>
+                      )}
+
+                      {item.status === 'Diluluskan' && item.returnRequestId && (
+                        <div className="text-xs">
+                          {item.returnRequestStatus === 'pending' && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-lg">
+                              ⏳ Permohonan Pulang Dihantar
+                            </span>
+                          )}
+                          {item.returnRequestStatus === 'acknowledged' && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg">
+                              ✓ Staff Terima Permohonan
+                            </span>
+                          )}
+                          {item.returnRequestStatus === 'scheduled' && (
+                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-lg">
+                              📅 Dijadualkan
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Real D1 query
+    // Real D1 query - show items with available stock
     const barang = await db.prepare(
-      'SELECT * FROM barang WHERE status = "Tersedia" ORDER BY createdAt DESC'
+      'SELECT * FROM barang WHERE kuantitiTersedia > 0 ORDER BY createdAt DESC'
     ).all()
 
     return NextResponse.json({
