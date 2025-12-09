@@ -25,11 +25,20 @@ export default function UserNotifikasi() {
     }
     setUser(JSON.parse(userData))
     fetchNotifications()
+    
+    // Mark notifications as viewed
+    localStorage.setItem('notificationLastViewedAt', new Date().toISOString())
   }, [router])
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/user/notifikasi')
+      // Get last viewed timestamp
+      const lastViewedAt = localStorage.getItem('notificationLastViewedAt') || ''
+      const url = lastViewedAt 
+        ? `/api/user/notifikasi?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
+        : '/api/user/notifikasi'
+      
+      const res = await fetch(url)
       const data = await res.json()
       if (data.success) {
         setNotifications(data.data || [])
@@ -87,7 +96,7 @@ export default function UserNotifikasi() {
               <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi</h1>
               <p className="text-sm text-gray-600">Kemaskini dan makluman untuk anda</p>
             </div>
-            {notifications.some(n => n.isRead === 0) && (
+            {notifications.some((n: any) => n.isNew) && (
               <button
                 onClick={markAllAsRead}
                 className="bg-blue-500 text-white text-sm px-3 py-2 rounded-lg hover:bg-blue-600"
@@ -111,17 +120,17 @@ export default function UserNotifikasi() {
               <p className="text-gray-600">Anda tidak mempunyai sebarang notifikasi baharu</p>
             </div>
           ) : (
-            notifications.map((notif) => (
+            notifications.map((notif: any) => (
               <div
                 key={notif.id}
                 className={`rounded-xl shadow-sm p-4 border ${getNotificationColor(notif.jenisAktiviti)} ${
-                  notif.isRead === 0 ? 'border-l-4 bg-blue-50' : 'bg-white opacity-60'
+                  notif.isNew ? 'border-l-4 border-l-blue-500' : 'opacity-60'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="text-2xl">{getNotificationIcon(notif.jenisAktiviti)}</div>
                   <div className="flex-1">
-                    <p className={`${notif.isRead === 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                    <p className={`${notif.isNew ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                       {notif.keterangan}
                     </p>
                     <div className="flex items-center gap-2 mt-2">

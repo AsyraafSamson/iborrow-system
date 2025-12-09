@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
 
+    // Get lastViewedAt from query param (set by frontend when user visits notification page)
+    const lastViewedAt = searchParams.get('lastViewedAt')
+
     // Get user's notifications (return updates and other relevant notifications)
     const notifications = await db.prepare(`
       SELECT
@@ -38,19 +41,20 @@ export async function GET(request: NextRequest) {
       LIMIT ?
     `).bind(currentUser.id, limit).all()
 
-    // Count unread (notifications from last 24 hours as unread)
-    const unreadCount = await db.prepare(`
-      SELECT COUNT(*) as count
-      FROM log_aktiviti
-      WHERE userId = ?
-      AND jenisAktiviti IN ('RETURN_UPDATE', 'BOOKING_APPROVED', 'BOOKING_REJECTED')
-      AND createdAt > datetime('now', '-24 hours')
-    `).bind(currentUser.id).first()
+    // Add isNew flag to each notification (new if created after lastViewedAt or within last 5 minutes)
+    const cutoffTime = lastViewedAt || new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const enrichedNotifications = notifications.results.map((notif: any) => ({
+      ...notif,
+      isNew: new Date(notif.createdAt) > new Date(cutoffTime)
+    }))
+
+    // Count unread (notifications newer than lastViewedAt)
+    const unreadCount = enrichedNotifications.filter((n: any) => n.isNew).length
 
     return NextResponse.json({
       success: true,
-      data: notifications.results,
-      unreadCount: unreadCount?.count || 0
+      data: enrichedNotifications,
+      unreadCount: unreadCount
     })
 
   } catch (error) {

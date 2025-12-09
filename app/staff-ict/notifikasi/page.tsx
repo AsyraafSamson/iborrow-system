@@ -26,11 +26,19 @@ export default function StaffNotifikasi() {
     }
     setUser(JSON.parse(userData))
     fetchNotifications()
+    
+    // Mark notifications as viewed
+    localStorage.setItem('notificationLastViewedAt', new Date().toISOString())
   }, [router])
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/staff-ict/notifikasi')
+      const lastViewedAt = localStorage.getItem('notificationLastViewedAt') || ''
+      const url = lastViewedAt 
+        ? `/api/staff-ict/notifikasi?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
+        : '/api/staff-ict/notifikasi'
+      
+      const res = await fetch(url)
       const data = await res.json()
       if (data.success) {
         setNotifications(data.data || [])
@@ -95,7 +103,7 @@ export default function StaffNotifikasi() {
               <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi Staff</h1>
               <p className="text-sm text-gray-600">Permohonan dan makluman yang memerlukan tindakan</p>
             </div>
-            {notifications.some(n => n.isRead === 0) && (
+            {notifications.some((n: any) => n.isNew) && (
               <button
                 onClick={markAllAsRead}
                 className="bg-blue-500 text-white text-sm px-3 py-2 rounded-lg hover:bg-blue-600"
@@ -143,20 +151,20 @@ export default function StaffNotifikasi() {
                 <div
                   key={notif.id}
                   className={`rounded-xl shadow-sm p-4 border ${getNotificationColor(notif.jenisAktiviti)} ${
-                    notif.isRead === 0 ? 'border-l-4 bg-blue-50' : 'bg-white opacity-60'
+                    (notif as any).isNew ? 'border-l-4 border-l-blue-500' : 'opacity-60'
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-2xl">{getNotificationIcon(notif.jenisAktiviti)}</div>
                     <div className="flex-1">
-                      <p className={`${notif.isRead === 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                      <p className={`${(notif as any).isNew ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
                         {notif.keterangan}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
                         <span className="text-xs text-gray-500">
                           {new Date(notif.createdAt).toLocaleString('ms-MY')}
                         </span>
-                        {notif.isRead === 0 && (
+                        {(notif as any).isNew && (
                           <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                             BELUM DIBACA
                           </span>

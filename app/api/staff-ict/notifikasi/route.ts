@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '50')
+    const lastViewedAt = searchParams.get('lastViewedAt')
 
     // Get staff notifications (return requests and booking requests)
     const notifications = await db.prepare(`
@@ -38,19 +39,20 @@ export async function GET(request: NextRequest) {
       LIMIT ?
     `).bind(currentUser.id, limit).all()
 
-    // Count unread (notifications from last 24 hours as unread)
-    const unreadCount = await db.prepare(`
-      SELECT COUNT(*) as count
-      FROM log_aktiviti
-      WHERE userId = ?
-      AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
-      AND createdAt > datetime('now', '-24 hours')
-    `).bind(currentUser.id).first()
+    // Add isNew flag to each notification
+    const cutoffTime = lastViewedAt || new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    const enrichedNotifications = notifications.results.map((notif: any) => ({
+      ...notif,
+      isNew: new Date(notif.createdAt) > new Date(cutoffTime)
+    }))
+
+    // Count unread (notifications newer than lastViewedAt)
+    const unreadCount = enrichedNotifications.filter((n: any) => n.isNew).length
 
     return NextResponse.json({
       success: true,
-      data: notifications.results,
-      unreadCount: unreadCount?.count || 0
+      data: enrichedNotifications,
+      unreadCount: unreadCount
     })
 
   } catch (error) {

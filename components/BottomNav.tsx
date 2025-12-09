@@ -23,11 +23,16 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
 
   const fetchUnreadCount = async (role: string) => {
     try {
+      const lastViewedAt = localStorage.getItem('notificationLastViewedAt') || ''
       const endpoint = role === 'staff-ict' || role === 'admin'
         ? '/api/staff-ict/notifikasi'
         : '/api/user/notifikasi'
+      
+      const url = lastViewedAt 
+        ? `${endpoint}?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
+        : endpoint
 
-      const res = await fetch(endpoint)
+      const res = await fetch(url)
       const data = await res.json()
       if (data.success) {
         setUnreadCount(data.unreadCount || 0)
