@@ -65,7 +65,6 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
         { href: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
         { href: '/admin/pengguna', icon: '👥', label: 'Pengguna' },
         { href: '/admin/barang', icon: '📦', label: 'Barang' },
-        { href: '/admin/laporan', icon: '📈', label: 'Laporan' },
         { href: '/admin/profile', icon: '👤', label: 'Profil' }
       ]
     } else if (userRole === 'staff-ict') {

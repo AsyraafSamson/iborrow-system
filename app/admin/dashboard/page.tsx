@@ -153,12 +153,6 @@ export default function AdminDashboard() {
             <Link href="/admin/barang" className="bg-green-50 p-3 rounded-lg text-center text-green-700 hover:bg-green-100">
               Urus Barang
             </Link>
-            <Link href="/admin/laporan" className="bg-purple-50 p-3 rounded-lg text-center text-purple-700 hover:bg-purple-100">
-              Lihat Laporan
-            </Link>
-            <Link href="/admin/tetapan/sistem" className="bg-gray-50 p-3 rounded-lg text-center text-gray-700 hover:bg-gray-100">
-              Tetapan Sistem
-            </Link>
           </div>
         </div>
 

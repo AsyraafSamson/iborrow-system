@@ -116,10 +116,10 @@ export default function UserDashboard() {
               <div className="text-sm font-medium text-green-900">Tempahan Saya</div>
               <div className="text-xs text-green-600">Lihat status tempahan</div>
             </Link>
-            <Link href="/user/sejarah" className="bg-purple-50 hover:bg-purple-100 rounded-lg p-3 text-center transition-colors">
-              <div className="text-2xl mb-1">📜</div>
-              <div className="text-sm font-medium text-purple-900">Sejarah</div>
-              <div className="text-xs text-purple-600">Rekod tempahan</div>
+            <Link href="/user/notifikasi" className="bg-purple-50 hover:bg-purple-100 rounded-lg p-3 text-center transition-colors">
+              <div className="text-2xl mb-1">🔔</div>
+              <div className="text-sm font-medium text-purple-900">Notifikasi</div>
+              <div className="text-xs text-purple-600">Kemaskini terkini</div>
             </Link>
             <Link href="/user/profile" className="bg-orange-50 hover:bg-orange-100 rounded-lg p-3 text-center transition-colors">
               <div className="text-2xl mb-1">👤</div>

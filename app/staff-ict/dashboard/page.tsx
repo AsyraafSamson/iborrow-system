@@ -134,8 +134,11 @@ export default function StaffDashboard() {
             <Link href="/staff-ict/barang" className="bg-green-50 p-3 rounded-lg text-center text-green-700 hover:bg-green-100">
               Urus Barang
             </Link>
-            <Link href="/staff-ict/laporan/keseluruhan" className="bg-blue-50 p-3 rounded-lg text-center text-blue-700 hover:bg-blue-100">
-              Lihat Laporan
+            <Link href="/staff-ict/return-requests" className="bg-blue-50 p-3 rounded-lg text-center text-blue-700 hover:bg-blue-100">
+              Return Requests
+            </Link>
+            <Link href="/staff-ict/notifikasi" className="bg-purple-50 p-3 rounded-lg text-center text-purple-700 hover:bg-purple-100">
+              Notifikasi
             </Link>
           </div>
         </div>

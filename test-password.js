@@ -1,43 +1,21 @@
-// Test script to verify password hashing works correctly
+// Verify izat password hash
 const bcrypt = require('bcryptjs');
 
-// Test passwords and their hashes from the database
-const testCases = [
-  {
-    email: 'admin@ilkkm.edu.my',
-    password: 'admin123',
-    hash: '$2b$10$07TjoI0KgDzLZm.ZSuZphuebf8sJevzjmTqPyAEFAharZHGhkGIg.'
-  },
-  {
-    email: 'staffict@ilkkm.edu.my',
-    password: 'staffict123',
-    hash: '$2b$10$nkaoq.66KpBWptHcl96Mbe4FMEeZ3OWNid6Zp.Sq3KKqh2ZKKF4z2'
-  },
-  {
-    email: 'ahmad@ilkkm.edu.my',
-    password: 'user123',
-    hash: '$2b$10$aJ4pSNY9i.A3WZ8nY3qCPuEdzAiagSMivQUPqPO3w7kID0AwUlaaq'
+async function verifyHash() {
+  const password = 'password123';
+  const newHash = '$2b$10$8o53PSfFmhaVd74GjhFfnulgDK7x3wuCZJRRRjXll6AMU3ZsD3yee';
+
+  console.log('Testing password hash for izat@ilkkm.edu.my\n');
+  console.log('Password:', password);
+  console.log('Hash:', newHash);
+
+  const isValid = await bcrypt.compare(password, newHash);
+  console.log('\nVerification:', isValid ? '✅ PASS - Login should work!' : '❌ FAIL - Still broken');
+
+  if (isValid) {
+    console.log('\n✅ Password hash is correct!');
+    console.log('User izat@ilkkm.edu.my can now login with password123');
   }
-];
-
-async function testPasswords() {
-  console.log('🔐 Testing Password Verification\n');
-
-  for (const test of testCases) {
-    const isValid = await bcrypt.compare(test.password, test.hash);
-    const status = isValid ? '✅ PASS' : '❌ FAIL';
-    console.log(`${status} ${test.email}`);
-    console.log(`   Password: ${test.password}`);
-    console.log(`   Hash: ${test.hash.substring(0, 30)}...`);
-    console.log(`   Verified: ${isValid}\n`);
-  }
-
-  // Test wrong password
-  console.log('🔒 Testing Wrong Password (should fail):');
-  const wrongTest = await bcrypt.compare('wrongpassword', testCases[0].hash);
-  console.log(`   ${wrongTest ? '❌ FAIL - accepted wrong password!' : '✅ PASS - rejected wrong password'}\n`);
-
-  console.log('✅ All tests completed!');
 }
 
-testPasswords().catch(console.error);
+verifyHash().catch(console.error);
