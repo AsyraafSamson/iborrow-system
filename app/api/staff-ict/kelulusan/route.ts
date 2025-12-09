@@ -191,21 +191,35 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Email notifications disabled - using in-app notifications only
-    // if (body.status === 'Diluluskan' || body.status === 'Ditolak') {
-    //   const user = await db.prepare('SELECT nama, email FROM users WHERE id = ?').bind(tempahan.userId).first()
-    //   const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
-    //
-    //   if (user && user.email && barang) {
-    //     await sendNotificationEmail({
-    //       to: user.email,
-    //       userName: user.nama,
-    //       type: body.status === 'Diluluskan' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
-    //       itemName: barang.namaBarang,
-    //       message: body.catatan || ''
-    //     })
-    //   }
-    // }
+    // Create in-app notification for user
+    if (body.status === 'Diluluskan' || body.status === 'Ditolak') {
+      const barang = await db.prepare('SELECT namaBarang FROM barang WHERE id = ?').bind(tempahan.barangId).first()
+      const staff = await db.prepare('SELECT nama FROM users WHERE id = ?').bind(staffId).first()
+
+      let message = ''
+      if (body.status === 'Diluluskan') {
+        message = `✅ Tempahan anda untuk ${barang.namaBarang} telah DILULUSKAN oleh ${staff.nama}. Anda boleh mengambil barang sekarang!`
+        if (body.catatan) {
+          message += `\n\nCatatan: ${body.catatan}`
+        }
+      } else {
+        message = `❌ Tempahan anda untuk ${barang.namaBarang} telah DITOLAK oleh ${staff.nama}.`
+        if (body.catatan) {
+          message += `\n\nSebab: ${body.catatan}`
+        }
+      }
+
+      await db.prepare(`
+        INSERT INTO log_aktiviti (
+          id, userId, jenisAktiviti, keterangan, createdAt
+        ) VALUES (?, ?, ?, ?, datetime('now'))
+      `).bind(
+        'log_' + Date.now(),
+        tempahan.userId,
+        body.status === 'Diluluskan' ? 'BOOKING_APPROVED' : 'BOOKING_REJECTED',
+        message
+      ).run()
+    }
 
     return NextResponse.json({
       success: true,
