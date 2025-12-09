@@ -30,8 +30,7 @@ export async function GET(request: NextRequest) {
         id,
         jenisAktiviti,
         keterangan,
-        createdAt,
-        COALESCE(isRead, 0) as isRead
+        createdAt
       FROM log_aktiviti
       WHERE userId = ?
       AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
@@ -39,13 +38,13 @@ export async function GET(request: NextRequest) {
       LIMIT ?
     `).bind(currentUser.id, limit).all()
 
-    // Count unread only (isRead = 0 or NULL)
+    // Count unread (notifications from last 24 hours as unread)
     const unreadCount = await db.prepare(`
       SELECT COUNT(*) as count
       FROM log_aktiviti
       WHERE userId = ?
       AND jenisAktiviti IN ('RETURN_NOTIFICATION', 'BOOKING_REQUEST')
-      AND COALESCE(isRead, 0) = 0
+      AND createdAt > datetime('now', '-24 hours')
     `).bind(currentUser.id).first()
 
     return NextResponse.json({
