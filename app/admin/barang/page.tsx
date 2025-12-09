@@ -73,6 +73,19 @@ export default function AdminBarang() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validation: kuantitiTersedia cannot exceed kuantitiTotal
+    if (formData.kuantitiTersedia > formData.kuantitiTotal) {
+      alert('❌ Ralat: Kuantiti Tersedia tidak boleh melebihi Kuantiti Total!\n\nKuantiti Total: ' + formData.kuantitiTotal + '\nKuantiti Tersedia: ' + formData.kuantitiTersedia)
+      return
+    }
+
+    // Validation: kuantitiTersedia cannot be negative
+    if (formData.kuantitiTersedia < 0 || formData.kuantitiTotal < 1) {
+      alert('❌ Ralat: Kuantiti mesti bernilai positif!')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -421,6 +434,7 @@ export default function AdminBarang() {
                         min="1"
                         required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Jumlah keseluruhan barang yang dimiliki</p>
                     </div>
 
                     <div>
@@ -431,8 +445,10 @@ export default function AdminBarang() {
                         onChange={(e) => setFormData({...formData, kuantitiTersedia: parseInt(e.target.value) || 1})}
                         className="w-full px-3 py-2 border rounded-lg"
                         min="0"
+                        max={formData.kuantitiTotal}
                         required
                       />
+                      <p className="text-xs text-gray-500 mt-1">Boleh dipinjam sekarang (max: {formData.kuantitiTotal})</p>
                     </div>
 
                     <div>

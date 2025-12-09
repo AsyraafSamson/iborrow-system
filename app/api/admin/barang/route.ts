@@ -58,6 +58,21 @@ export async function POST(request: NextRequest) {
     const db = (process.env as any).DB
     const body = await request.json()
 
+    // Validate kuantiti fields
+    if (body.kuantitiTersedia > body.kuantitiTotal) {
+      return NextResponse.json({
+        success: false,
+        error: 'Kuantiti Tersedia tidak boleh melebihi Kuantiti Total'
+      }, { status: 400 })
+    }
+
+    if (body.kuantitiTersedia < 0 || body.kuantitiTotal < 1) {
+      return NextResponse.json({
+        success: false,
+        error: 'Kuantiti mesti bernilai positif'
+      }, { status: 400 })
+    }
+
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
       return NextResponse.json({
@@ -141,6 +156,23 @@ export async function PUT(request: NextRequest) {
   try {
     const db = (process.env as any).DB
     const body = await request.json()
+
+    // Validate kuantiti fields
+    if (body.kuantitiTersedia !== undefined && body.kuantitiTotal !== undefined) {
+      if (body.kuantitiTersedia > body.kuantitiTotal) {
+        return NextResponse.json({
+          success: false,
+          error: 'Kuantiti Tersedia tidak boleh melebihi Kuantiti Total'
+        }, { status: 400 })
+      }
+
+      if (body.kuantitiTersedia < 0 || body.kuantitiTotal < 1) {
+        return NextResponse.json({
+          success: false,
+          error: 'Kuantiti mesti bernilai positif'
+        }, { status: 400 })
+      }
+    }
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
