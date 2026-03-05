@@ -39,6 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# wrangler local state
+.wrangler/
 # Force redeploy - Activity logging update
 
 # Windows reserved device file accidentally created
