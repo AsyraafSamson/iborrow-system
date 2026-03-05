@@ -1,5 +1,6 @@
 // Database helper for Cloudflare D1
 import type { D1Database } from '@cloudflare/workers-types'
+import { getRequestContext } from '@cloudflare/next-on-pages'
 
 // TypeScript types for database tables
 export interface User {
@@ -64,18 +65,12 @@ export interface LogAktiviti {
  */
 export function getD1Database(): D1Database | null {
   try {
-    // Access DB binding from Cloudflare environment
-    const env = process.env as any
-
-    if (env.DB && typeof env.DB.prepare === 'function') {
-      console.log('✅ D1 Database connected')
+    const { env } = getRequestContext()
+    if (env.DB) {
       return env.DB as D1Database
     }
-
-    console.log('⚠️ D1 Database not available (local dev mode)')
     return null
   } catch (error) {
-    console.error('❌ Error accessing D1:', error)
     return null
   }
 }

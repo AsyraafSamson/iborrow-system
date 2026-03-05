@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev worker.js --local",
-    "dev:next": "next dev",
+    "dev": "next dev",
+    "dev:worker": "wrangler dev worker.js --local",
     "build": "next build",
     "build:cf": "next build && npx @cloudflare/next-on-pages",
     "start": "next start",
