@@ -3,6 +3,11 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { RotateCcw, CheckSquare, Bell } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -10,6 +15,18 @@ interface Notification {
   keterangan: string
   createdAt: string
   isRead: number
+}
+
+const getNotificationColor = (type: string) => {
+  if (type === 'RETURN_NOTIFICATION') return 'border-blue-200 bg-blue-50/50 dark:bg-blue-950/20'
+  if (type === 'BOOKING_REQUEST') return 'border-orange-200 bg-orange-50/50 dark:bg-orange-950/20'
+  return 'border-border'
+}
+
+const getActionLink = (type: string) => {
+  if (type === 'RETURN_NOTIFICATION') return { href: '/staff-ict/return-requests', text: 'Lihat Permohonan' }
+  if (type === 'BOOKING_REQUEST') return { href: '/staff-ict/kelulusan', text: 'Semak Tempahan' }
+  return null
 }
 
 export default function StaffNotifikasi() {
@@ -20,29 +37,21 @@ export default function StaffNotifikasi() {
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
-    if (!userData) {
-      router.push('/login')
-      return
-    }
+    if (!userData) { router.push('/login'); return }
     setUser(JSON.parse(userData))
     fetchNotifications()
-    
-    // Mark notifications as viewed
     localStorage.setItem('notificationLastViewedAt', new Date().toISOString())
   }, [router])
 
   const fetchNotifications = async () => {
     try {
       const lastViewedAt = localStorage.getItem('notificationLastViewedAt') || ''
-      const url = lastViewedAt 
+      const url = lastViewedAt
         ? `/api/staff-ict/notifikasi?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
         : '/api/staff-ict/notifikasi'
-      
       const res = await fetch(url)
       const data = await res.json()
-      if (data.success) {
-        setNotifications(data.data || [])
-      }
+      if (data.success) setNotifications(data.data || [])
     } catch (error) {
       console.error('Error fetching notifications:', error)
     } finally {
@@ -57,136 +66,88 @@ export default function StaffNotifikasi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAllAsRead: true })
       })
-      if (res.ok) {
-        // Refresh notifications
-        fetchNotifications()
-      }
+      if (res.ok) fetchNotifications()
     } catch (error) {
       console.error('Error marking all as read:', error)
     }
   }
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'RETURN_NOTIFICATION': return '↩️'
-      case 'BOOKING_REQUEST': return '📋'
-      default: return '🔔'
-    }
-  }
-
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'RETURN_NOTIFICATION': return 'bg-blue-50 border-blue-200'
-      case 'BOOKING_REQUEST': return 'bg-orange-50 border-orange-200'
-      default: return 'bg-gray-50 border-gray-200'
-    }
-  }
-
-  const getActionLink = (type: string, keterangan: string) => {
-    if (type === 'RETURN_NOTIFICATION') {
-      return { href: '/staff-ict/return-requests', text: 'Lihat Permohonan' }
-    } else if (type === 'BOOKING_REQUEST') {
-      return { href: '/staff-ict/kelulusan', text: 'Semak Tempahan' }
-    }
-    return null
-  }
-
-  if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
+  if (!user) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 pb-24">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi Staff</h1>
-              <p className="text-sm text-gray-600">Permohonan dan makluman yang memerlukan tindakan</p>
+    <div className="min-h-screen bg-background p-3 pb-24">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>Notifikasi Staff</CardTitle>
+                <p className="text-sm text-muted-foreground">Permohonan dan makluman yang memerlukan tindakan</p>
+              </div>
+              {notifications.some((n: any) => n.isNew) && (
+                <Button size="sm" onClick={markAllAsRead}>Tandakan Semua Dibaca</Button>
+              )}
             </div>
-            {notifications.some((n: any) => n.isNew) && (
-              <button
-                onClick={markAllAsRead}
-                className="bg-blue-500 text-white text-sm px-3 py-2 rounded-lg hover:bg-blue-600"
-              >
-                Tandakan Semua Dibaca
-              </button>
-            )}
-          </div>
-        </div>
+          </CardHeader>
+        </Card>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <Link
-            href="/staff-ict/return-requests"
-            className="bg-blue-500 text-white rounded-xl p-4 text-center hover:bg-blue-600 transition"
-          >
-            <div className="text-2xl mb-1">↩️</div>
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/staff-ict/return-requests" className="bg-primary text-primary-foreground rounded-xl p-4 text-center hover:bg-primary/90 transition-colors">
+            <RotateCcw className="mx-auto mb-2 h-6 w-6" />
             <div className="text-sm font-medium">Permohonan Pemulangan</div>
           </Link>
-          <Link
-            href="/staff-ict/kelulusan"
-            className="bg-orange-500 text-white rounded-xl p-4 text-center hover:bg-orange-600 transition"
-          >
-            <div className="text-2xl mb-1">📋</div>
+          <Link href="/staff-ict/kelulusan" className="bg-secondary text-secondary-foreground rounded-xl p-4 text-center hover:bg-secondary/80 transition-colors">
+            <CheckSquare className="mx-auto mb-2 h-6 w-6" />
             <div className="text-sm font-medium">Kelulusan Tempahan</div>
           </Link>
         </div>
 
-        {/* Notifications List */}
         <div className="space-y-3">
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-600">
-              Loading...
-            </div>
+            <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
           ) : notifications.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="text-4xl mb-2">🔔</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Tiada Notifikasi</h3>
-              <p className="text-gray-600">Tiada permohonan atau makluman baharu pada masa ini</p>
-            </div>
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Bell className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-1">Tiada Notifikasi</h3>
+                <p className="text-sm text-muted-foreground">Tiada permohonan atau makluman baharu pada masa ini</p>
+              </CardContent>
+            </Card>
           ) : (
-            notifications.map((notif) => {
-              const action = getActionLink(notif.jenisAktiviti, notif.keterangan)
+            notifications.map((notif: any) => {
+              const action = getActionLink(notif.jenisAktiviti)
               return (
-                <div
-                  key={notif.id}
-                  className={`rounded-xl shadow-sm p-4 border ${getNotificationColor(notif.jenisAktiviti)} ${
-                    (notif as any).isNew ? 'border-l-4 border-l-blue-500' : 'opacity-60'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="text-2xl">{getNotificationIcon(notif.jenisAktiviti)}</div>
+                <Card key={notif.id} className={`border ${getNotificationColor(notif.jenisAktiviti)} ${notif.isNew ? 'border-l-4 border-l-primary' : 'opacity-60'}`}>
+                  <CardContent className="pt-4">
                     <div className="flex-1">
-                      <p className={`${(notif as any).isNew ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                      <p className={notif.isNew ? 'font-semibold text-foreground' : 'text-muted-foreground'}>
                         {notif.keterangan}
                       </p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {new Date(notif.createdAt).toLocaleString('ms-MY')}
                         </span>
-                        {(notif as any).isNew && (
-                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                            BELUM DIBACA
-                          </span>
+                        {notif.isNew && (
+                          <Badge variant="destructive" className="text-xs">BELUM DIBACA</Badge>
                         )}
                       </div>
                       {action && (
-                        <Link
-                          href={action.href}
-                          className="inline-block mt-2 bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg hover:bg-blue-600"
-                        >
-                          {action.text} →
+                        <Link href={action.href} className="inline-block mt-2">
+                          <Button size="sm" variant="outline" className="h-7 text-xs">{action.text} →</Button>
                         </Link>
                       )}
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               )
             })
           )}
         </div>
 
-        {/* Bottom Nav */}
         <BottomNav activeTab="notifikasi" />
       </div>
     </div>

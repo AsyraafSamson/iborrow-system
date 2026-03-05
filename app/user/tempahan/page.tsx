@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 interface Tempahan {
   id: string
@@ -22,6 +26,13 @@ interface Tempahan {
   returnRequestedAt?: string
 }
 
+const statusVariant = (status: string): "default" | "destructive" | "secondary" | "outline" => {
+  if (status === 'Diluluskan') return 'default'
+  if (status === 'Ditolak') return 'destructive'
+  if (status === 'Selesai') return 'outline'
+  return 'secondary'
+}
+
 export default function UserTempahan() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
@@ -32,24 +43,18 @@ export default function UserTempahan() {
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
-    if (!userData) { 
-      router.push('/login')
-      return 
-    }
-    setUser(JSON.parse(userData))
-    fetchTempahan(JSON.parse(userData).id)
+    if (!userData) { router.push('/login'); return }
+    const parsed = JSON.parse(userData)
+    setUser(parsed)
+    fetchTempahan(parsed.id)
   }, [router])
 
   const fetchTempahan = async (userId: string) => {
     try {
       const response = await fetch(`/api/user/tempahan?userId=${userId}`)
       const data = await response.json()
-      
-      if (data.success) {
-        setTempahan(data.data || [])
-      } else {
-        setMessage({ type: 'error', text: 'Gagal memuat tempahan' })
-      }
+      if (data.success) setTempahan(data.data || [])
+      else setMessage({ type: 'error', text: 'Gagal memuat tempahan' })
     } catch (error) {
       setMessage({ type: 'error', text: 'Ralat rangkaian' })
     } finally {
@@ -59,53 +64,34 @@ export default function UserTempahan() {
 
   const handleCancel = async (tempahanId: string) => {
     if (!confirm('Adakah anda pasti untuk membatalkan tempahan ini?')) return
-
     try {
       const response = await fetch('/api/user/tempahan', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tempahanId })
       })
-
       const data = await response.json()
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Tempahan berjaya dibatalkan' })
-        fetchTempahan(user.id)
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Gagal batalkan tempahan' })
-      }
+      if (data.success) { setMessage({ type: 'success', text: 'Tempahan berjaya dibatalkan' }); fetchTempahan(user.id) }
+      else setMessage({ type: 'error', text: data.error || 'Gagal batalkan tempahan' })
     } catch (error) {
       setMessage({ type: 'error', text: 'Ralat rangkaian' })
     }
   }
 
   const handleReturnRequest = async (item: Tempahan) => {
-    // Get urgency level
     const urgency = confirm('Adakah ini permohonan pemulangan segera?') ? 'urgent' : 'normal'
-
-    // Get optional notes
     const notes = prompt('Nota tambahan (opsional):') || ''
-
     if (!confirm(`Hantar permohonan pemulangan untuk ${item.namaBarang}?\n\nStaff ICT akan dimaklumkan secara automatik.`)) return
-
     setLoading(true)
     try {
       const response = await fetch('/api/user/return-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId: item.id,
-          urgency,
-          notes
-        })
+        body: JSON.stringify({ bookingId: item.id, urgency, notes })
       })
-
       const data = await response.json()
       if (data.success) {
-        setMessage({
-          type: 'success',
-          text: `Permohonan pemulangan berjaya dihantar! ${data.staffCount} staff telah dimaklumkan.`
-        })
+        setMessage({ type: 'success', text: `Permohonan pemulangan berjaya dihantar! ${data.staffCount} staff telah dimaklumkan.` })
         fetchTempahan(user.id)
       } else {
         setMessage({ type: 'error', text: data.error || 'Gagal hantar permohonan' })
@@ -117,228 +103,144 @@ export default function UserTempahan() {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Pending': return 'bg-yellow-100 text-yellow-800'
-      case 'Diluluskan': return 'bg-green-100 text-green-800'
-      case 'Ditolak': return 'bg-red-100 text-red-800'
-      case 'Selesai': return 'bg-blue-100 text-blue-800'
-      case 'Dibatalkan': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Pending': return '⏳'
-      case 'Diluluskan': return '✅'
-      case 'Ditolak': return '❌'
-      case 'Selesai': return '✔️'
-      case 'Dibatalkan': return '⚫'
-      default: return '❓'
-    }
-  }
-
-  const filteredTempahan = tempahan.filter(item => {
-    if (activeTab === 'active') {
-      return ['Pending', 'Diluluskan'].includes(item.status)
-    }
-    return true
-  })
+  const filteredTempahan = tempahan.filter(item =>
+    activeTab === 'active' ? ['Pending', 'Diluluskan'].includes(item.status) : true
+  )
 
   const activeTempahan = tempahan.filter(t => ['Pending', 'Diluluskan'].includes(t.status))
-  const completedTempahan = tempahan.filter(t => ['Selesai', 'Ditolak', 'Dibatalkan'].includes(t.status))
 
-  if (loading) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
-  }
-
-  if (!user) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">User not found</div>
-  }
+  if (!user) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 pb-24">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-gray-900">📋 Tempahan Saya</h1>
-            <Link 
-              href="/user/barang"
-              className="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-blue-600"
-            >
-              ➕ Tempah Barang
-            </Link>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background p-3 pb-24">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Tempahan Saya</CardTitle>
+              <Link href="/user/barang">
+                <Button size="sm">+ Tempah Barang</Button>
+              </Link>
+            </div>
+          </CardHeader>
+        </Card>
 
-        {/* Alert Messages */}
         {message.text && (
-          <div className={`mb-4 p-3 rounded-lg ${message.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-500/15 text-green-700' : 'bg-destructive/15 text-destructive'}`}>
             {message.text}
           </div>
         )}
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="bg-yellow-100 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-yellow-800">{tempahan.filter(t => t.status === 'Pending').length}</div>
-            <div className="text-xs text-yellow-600">Menunggu</div>
-          </div>
-          <div className="bg-green-100 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-green-800">{tempahan.filter(t => t.status === 'Diluluskan').length}</div>
-            <div className="text-xs text-green-600">Diluluskan</div>
-          </div>
-          <div className="bg-blue-100 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-blue-800">{tempahan.filter(t => t.status === 'Selesai').length}</div>
-            <div className="text-xs text-blue-600">Selesai</div>
-          </div>
-          <div className="bg-gray-100 rounded-xl p-3 text-center">
-            <div className="text-lg font-bold text-gray-800">{tempahan.length}</div>
-            <div className="text-xs text-gray-600">Jumlah</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Card><CardContent className="pt-4 text-center"><div className="text-lg font-bold text-orange-600">{tempahan.filter(t => t.status === 'Pending').length}</div><div className="text-xs text-muted-foreground">Menunggu</div></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><div className="text-lg font-bold text-green-600">{tempahan.filter(t => t.status === 'Diluluskan').length}</div><div className="text-xs text-muted-foreground">Diluluskan</div></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><div className="text-lg font-bold text-blue-600">{tempahan.filter(t => t.status === 'Selesai').length}</div><div className="text-xs text-muted-foreground">Selesai</div></CardContent></Card>
+          <Card><CardContent className="pt-4 text-center"><div className="text-lg font-bold text-foreground">{tempahan.length}</div><div className="text-xs text-muted-foreground">Jumlah</div></CardContent></Card>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-xl shadow-sm p-1 mb-4">
-          <div className="grid grid-cols-2 gap-1">
-            <button
-              onClick={() => setActiveTab('active')}
-              className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'active'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              🔴 Aktif ({activeTempahan.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'all'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              📋 Semua ({tempahan.length})
-            </button>
-          </div>
-        </div>
+        <Card>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 gap-1">
+              <button
+                onClick={() => setActiveTab('active')}
+                className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'active' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Aktif ({activeTempahan.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${activeTab === 'all' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                Semua ({tempahan.length})
+              </button>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Tempahan List */}
-        <div className="space-y-3">
-          {filteredTempahan.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="text-4xl mb-2">📋</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+        {loading ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+        ) : filteredTempahan.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h3 className="text-lg font-medium mb-2">
                 {activeTab === 'active' ? 'Tiada Tempahan Aktif' : 'Tiada Tempahan'}
               </h3>
-              <p className="text-gray-600 mb-4">
-                {activeTab === 'active' 
-                  ? 'Anda tidak mempunyai tempahan yang sedang aktif'
-                  : 'Anda belum membuat sebarang tempahan'
-                }
+              <p className="text-sm text-muted-foreground mb-4">
+                {activeTab === 'active' ? 'Anda tidak mempunyai tempahan yang sedang aktif' : 'Anda belum membuat sebarang tempahan'}
               </p>
-              <Link 
-                href="/user/barang"
-                className="inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-              >
-                📦 Lihat Barang Tersedia
+              <Link href="/user/barang">
+                <Button size="sm">Lihat Barang Tersedia</Button>
               </Link>
-            </div>
-          ) : (
-            filteredTempahan.map((item) => (
-              <div key={item.id} className="bg-white rounded-xl shadow-sm p-4">
-                <div className="flex items-start gap-4">
-                  {/* Status Icon */}
-                  <div className="text-2xl">{getStatusIcon(item.status)}</div>
-                  
-                  {/* Content */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-bold text-gray-900">{item.namaBarang}</h3>
-                        <p className="text-sm text-gray-600">{item.kategori} • Kuantiti: {item.kuantiti}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                        {item.status}
-                      </span>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {filteredTempahan.map((item) => (
+              <Card key={item.id}>
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-bold text-foreground">{item.namaBarang}</h3>
+                      <p className="text-sm text-muted-foreground">{item.kategori} • Kuantiti: {item.kuantiti}</p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-                      <div>
-                        <span className="text-gray-500">Tarikh Mula:</span>
-                        <p className="font-medium">{new Date(item.tarikhMula).toLocaleDateString('ms-MY')}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Tarikh Tamat:</span>
-                        <p className="font-medium">{new Date(item.tarikhTamat).toLocaleDateString('ms-MY')}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mb-3 text-sm">
-                      <span className="text-gray-500">Tujuan:</span>
-                      <p className="text-gray-900">{item.tujuan}</p>
-                    </div>
+                    <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
+                  </div>
 
-                    {item.catatan && (
-                      <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                        <span className="text-sm text-gray-500">Catatan:</span>
-                        <p className="text-sm text-gray-900">{item.catatan}</p>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Ditempah: {new Date(item.createdAt).toLocaleDateString('ms-MY')}</span>
+                  <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Tarikh Mula:</span>
+                      <p className="font-medium">{new Date(item.tarikhMula).toLocaleDateString('ms-MY')}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Tarikh Tamat:</span>
+                      <p className="font-medium">{new Date(item.tarikhTamat).toLocaleDateString('ms-MY')}</p>
+                    </div>
+                  </div>
 
-                      {/* Action Buttons */}
+                  <div className="mb-3 text-sm">
+                    <span className="text-muted-foreground">Tujuan:</span>
+                    <p className="text-foreground">{item.tujuan}</p>
+                  </div>
+
+                  {item.catatan && (
+                    <div className="bg-muted rounded-md p-3 mb-3">
+                      <span className="text-sm text-muted-foreground">Catatan:</span>
+                      <p className="text-sm text-foreground">{item.catatan}</p>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Ditempah: {new Date(item.createdAt).toLocaleDateString('ms-MY')}</span>
+                    <div>
                       {item.status === 'Pending' && (
-                        <button
-                          onClick={() => handleCancel(item.id)}
-                          className="bg-red-100 text-red-800 px-3 py-1 rounded-lg hover:bg-red-200 text-xs"
-                        >
-                          ❌ Batal
-                        </button>
+                        <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={() => handleCancel(item.id)}>
+                          Batal
+                        </Button>
                       )}
-
                       {item.status === 'Diluluskan' && !item.returnRequestId && (
-                        <button
-                          onClick={() => handleReturnRequest(item)}
-                          className="bg-blue-500 text-white px-3 py-1.5 rounded-lg hover:bg-blue-600 text-xs font-medium"
-                        >
-                          ↩️ Mohon Pulangkan
-                        </button>
+                        <Button size="sm" className="h-7 text-xs" onClick={() => handleReturnRequest(item)}>
+                          Mohon Pulangkan
+                        </Button>
                       )}
-
                       {item.status === 'Diluluskan' && item.returnRequestId && (
                         <div className="text-xs">
-                          {item.returnRequestStatus === 'pending' && (
-                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-lg">
-                              ⏳ Permohonan Pulang Dihantar
-                            </span>
-                          )}
-                          {item.returnRequestStatus === 'acknowledged' && (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-lg">
-                              ✓ Staff Terima Permohonan
-                            </span>
-                          )}
-                          {item.returnRequestStatus === 'scheduled' && (
-                            <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-lg">
-                              📅 Dijadualkan
-                            </span>
-                          )}
+                          {item.returnRequestStatus === 'pending' && <Badge variant="secondary">Permohonan Pulang Dihantar</Badge>}
+                          {item.returnRequestStatus === 'acknowledged' && <Badge variant="default">Staff Terima Permohonan</Badge>}
+                          {item.returnRequestStatus === 'scheduled' && <Badge variant="secondary">Dijadualkan</Badge>}
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-        {/* Bottom Navigation */}
         <BottomNav activeTab="tempahan" />
       </div>
     </div>

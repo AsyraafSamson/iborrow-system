@@ -1,23 +1,18 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function StaffProfile() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState({
-    nama: '',
-    email: '',
-    telefon: '',
-    jabatan: ''
-  })
-  const [passwords, setPasswords] = useState({
-    current: '',
-    new: '',
-    confirm: ''
-  })
+  const [profile, setProfile] = useState({ nama: '', email: '', telefon: '', jabatan: '' })
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' })
   const [isEditing, setIsEditing] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -25,59 +20,36 @@ export default function StaffProfile() {
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
-    if (!userData) { 
-      router.push('/login')
-      return
-    }
+    if (!userData) { router.push('/login'); return }
     const parsedUser = JSON.parse(userData)
     setUser(parsedUser)
-    
-    // Fetch complete profile data
     const fetchProfile = async () => {
       try {
         const response = await fetch('/api/staff-ict/profile')
         if (response.ok) {
           const data = await response.json()
-          setProfile({
-            nama: data.nama || parsedUser.nama || '',
-            email: data.email || parsedUser.email || '',
-            telefon: data.telefon || '',
-            jabatan: data.jabatan || ''
-          })
+          setProfile({ nama: data.nama || parsedUser.nama || '', email: data.email || parsedUser.email || '', telefon: data.telefon || '', jabatan: data.jabatan || '' })
         }
       } catch (error) {
-        console.error('Error fetching profile:', error)
-        // Use stored user data as fallback
-        setProfile({
-          nama: parsedUser.nama || '',
-          email: parsedUser.email || '',
-          telefon: '',
-          jabatan: ''
-        })
+        setProfile({ nama: parsedUser.nama || '', email: parsedUser.email || '', telefon: '', jabatan: '' })
       }
     }
-    
     fetchProfile()
   }, [router])
 
   const handleUpdateProfile = async () => {
     setLoading(true)
     setMessage('')
-    
     try {
       const response = await fetch('/api/staff-ict/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profile)
       })
-      
       const data = await response.json()
-      
       if (response.ok) {
         setMessage('Profil berjaya dikemas kini!')
         setIsEditing(false)
-        
-        // Update localStorage
         const updatedUser = { ...user, nama: profile.nama, email: profile.email }
         localStorage.setItem('user', JSON.stringify(updatedUser))
         setUser(updatedUser)
@@ -92,31 +64,17 @@ export default function StaffProfile() {
   }
 
   const handleChangePassword = async () => {
-    if (passwords.new !== passwords.confirm) {
-      setMessage('Kata laluan baru tidak sepadan')
-      return
-    }
-    
-    if (passwords.new.length < 6) {
-      setMessage('Kata laluan baru mestilah sekurang-kurangnya 6 aksara')
-      return
-    }
-    
+    if (passwords.new !== passwords.confirm) { setMessage('Kata laluan baru tidak sepadan'); return }
+    if (passwords.new.length < 6) { setMessage('Kata laluan baru mestilah sekurang-kurangnya 6 aksara'); return }
     setLoading(true)
     setMessage('')
-    
     try {
       const response = await fetch('/api/staff-ict/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: passwords.current,
-          newPassword: passwords.new
-        })
+        body: JSON.stringify({ currentPassword: passwords.current, newPassword: passwords.new })
       })
-      
       const data = await response.json()
-      
       if (response.ok) {
         setMessage('Kata laluan berjaya dikemas kini!')
         setIsChangingPassword(false)
@@ -131,201 +89,97 @@ export default function StaffProfile() {
     }
   }
 
-
-  if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
+  if (!user) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 pb-24">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Profil Staff ICT</h1>
-          <p className="text-sm text-gray-600">Urus maklumat profil anda</p>
-        </div>
+    <div className="min-h-screen bg-background p-3 pb-24">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profil Staff ICT</CardTitle>
+            <p className="text-sm text-muted-foreground">Urus maklumat profil anda</p>
+          </CardHeader>
+        </Card>
 
-        {/* Message */}
         {message && (
-          <div className={`p-3 rounded-lg mb-4 text-sm ${
-            message.includes('berjaya') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
+          <div className={`rounded-md p-3 text-sm ${message.includes('berjaya') ? 'bg-green-500/15 text-green-700' : 'bg-destructive/15 text-destructive'}`}>
             {message}
           </div>
         )}
 
-        {/* Profile Information */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Maklumat Profil</h2>
-            {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600"
-              >
-                Edit Profil
-              </button>
-            ) : (
-              <div className="space-x-2">
-                <button
-                  onClick={handleUpdateProfile}
-                  disabled={loading}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan'}
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditing(false)
-                    setMessage('')
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-600"
-                >
-                  Batal
-                </button>
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-base">Maklumat Profil</CardTitle>
+              {!isEditing ? (
+                <Button size="sm" onClick={() => setIsEditing(true)}>Edit Profil</Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleUpdateProfile} disabled={loading}>{loading ? 'Menyimpan...' : 'Simpan'}</Button>
+                  <Button size="sm" variant="outline" onClick={() => { setIsEditing(false); setMessage('') }}>Batal</Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(['nama', 'email', 'telefon', 'jabatan'] as const).map((field) => (
+              <div key={field} className="space-y-1">
+                <Label>{field === 'telefon' ? 'No. Telefon' : field.charAt(0).toUpperCase() + field.slice(1)}</Label>
+                {isEditing ? (
+                  <Input
+                    type={field === 'email' ? 'email' : field === 'telefon' ? 'tel' : 'text'}
+                    value={profile[field]}
+                    onChange={(e) => setProfile({...profile, [field]: e.target.value})}
+                    placeholder={`Masukkan ${field}`}
+                  />
+                ) : (
+                  <div className="rounded-md bg-muted px-3 py-2 text-sm">{profile[field] || 'Tidak dinyatakan'}</div>
+                )}
               </div>
-            )}
-          </div>
+            ))}
+            <div className="space-y-1">
+              <Label>Peranan</Label>
+              <div className="rounded-md bg-muted px-3 py-2 text-sm">Staff ICT</div>
+            </div>
+          </CardContent>
+        </Card>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={profile.nama}
-                  onChange={(e) => setProfile({...profile, nama: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan nama penuh"
-                />
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-base">Tukar Kata Laluan</CardTitle>
+              {!isChangingPassword ? (
+                <Button size="sm" variant="secondary" onClick={() => setIsChangingPassword(true)}>Tukar Kata Laluan</Button>
               ) : (
-                <div className="p-3 bg-gray-50 rounded-lg text-gray-900">{profile.nama || 'Tidak dinyatakan'}</div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleChangePassword} disabled={loading}>{loading ? 'Menyimpan...' : 'Tukar'}</Button>
+                  <Button size="sm" variant="outline" onClick={() => { setIsChangingPassword(false); setPasswords({ current: '', new: '', confirm: '' }); setMessage('') }}>Batal</Button>
+                </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              {isEditing ? (
-                <input
-                  type="email"
-                  value={profile.email}
-                  onChange={(e) => setProfile({...profile, email: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan alamat email"
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg text-gray-900">{profile.email || 'Tidak dinyatakan'}</div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">No. Telefon</label>
-              {isEditing ? (
-                <input
-                  type="tel"
-                  value={profile.telefon}
-                  onChange={(e) => setProfile({...profile, telefon: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan no. telefon"
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg text-gray-900">{profile.telefon || 'Tidak dinyatakan'}</div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={profile.jabatan}
-                  onChange={(e) => setProfile({...profile, jabatan: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan jabatan"
-                />
-              ) : (
-                <div className="p-3 bg-gray-50 rounded-lg text-gray-900">{profile.jabatan || 'Tidak dinyatakan'}</div>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Peranan</label>
-              <div className="p-3 bg-gray-50 rounded-lg text-gray-900">Staff ICT</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Password Change */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Tukar Kata Laluan</h2>
-            {!isChangingPassword ? (
-              <button
-                onClick={() => setIsChangingPassword(true)}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600"
-              >
-                Tukar Kata Laluan
-              </button>
-            ) : (
-              <div className="space-x-2">
-                <button
-                  onClick={handleChangePassword}
-                  disabled={loading}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50"
-                >
-                  {loading ? 'Menyimpan...' : 'Tukar'}
-                </button>
-                <button
-                  onClick={() => {
-                    setIsChangingPassword(false)
-                    setPasswords({ current: '', new: '', confirm: '' })
-                    setMessage('')
-                  }}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-600"
-                >
-                  Batal
-                </button>
-              </div>
-            )}
-          </div>
-
+          </CardHeader>
           {isChangingPassword && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kata Laluan Semasa</label>
-                <input
-                  type="password"
-                  value={passwords.current}
-                  onChange={(e) => setPasswords({...passwords, current: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan kata laluan semasa"
-                />
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Kata Laluan Semasa</Label>
+                <Input type="password" value={passwords.current} onChange={(e) => setPasswords({...passwords, current: e.target.value})} placeholder="Masukkan kata laluan semasa" />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kata Laluan Baru</label>
-                <input
-                  type="password"
-                  value={passwords.new}
-                  onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Masukkan kata laluan baru (min. 6 aksara)"
-                />
+              <div className="space-y-2">
+                <Label>Kata Laluan Baru</Label>
+                <Input type="password" value={passwords.new} onChange={(e) => setPasswords({...passwords, new: e.target.value})} placeholder="Masukkan kata laluan baru (min. 6 aksara)" />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sahkan Kata Laluan Baru</label>
-                <input
-                  type="password"
-                  value={passwords.confirm}
-                  onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Sahkan kata laluan baru"
-                />
+              <div className="space-y-2">
+                <Label>Sahkan Kata Laluan Baru</Label>
+                <Input type="password" value={passwords.confirm} onChange={(e) => setPasswords({...passwords, confirm: e.target.value})} placeholder="Sahkan kata laluan baru" />
               </div>
-            </div>
+            </CardContent>
           )}
-        </div>
+        </Card>
 
-        {/* Bottom Navigation */}
         <BottomNav activeTab="profile" />
       </div>
     </div>

@@ -2,6 +2,18 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import {
+  LayoutDashboard,
+  Users,
+  Package,
+  User,
+  CheckSquare,
+  Bell,
+  ClipboardList,
+  LogOut,
+  RotateCcw,
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface BottomNavProps {
   activeTab?: string
@@ -27,8 +39,8 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
       const endpoint = role === 'staff-ict' || role === 'admin'
         ? '/api/staff-ict/notifikasi'
         : '/api/user/notifikasi'
-      
-      const url = lastViewedAt 
+
+      const url = lastViewedAt
         ? `${endpoint}?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
         : endpoint
 
@@ -44,50 +56,44 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
 
   const handleLogout = async () => {
     try {
-      // Call logout API to log LOGOUT event
       await fetch('/api/auth/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
-
-      // Clear storage and redirect
       localStorage.removeItem('user')
       localStorage.removeItem('session_token')
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
-      // Still logout even if API fails
       localStorage.removeItem('user')
       localStorage.removeItem('session_token')
       router.push('/login')
     }
   }
 
-  // Define navigation items based on role
   const getNavItems = () => {
     if (userRole === 'admin') {
       return [
-        { href: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
-        { href: '/admin/pengguna', icon: '👥', label: 'Pengguna' },
-        { href: '/admin/barang', icon: '📦', label: 'Barang' },
-        { href: '/admin/profile', icon: '👤', label: 'Profil' }
+        { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { href: '/admin/pengguna', icon: Users, label: 'Pengguna' },
+        { href: '/admin/barang', icon: Package, label: 'Barang' },
+        { href: '/admin/profile', icon: User, label: 'Profil' },
       ]
     } else if (userRole === 'staff-ict') {
       return [
-        { href: '/staff-ict/dashboard', icon: '📊', label: 'Dashboard' },
-        { href: '/staff-ict/kelulusan', icon: '✅', label: 'Kelulusan' },
-        { href: '/staff-ict/notifikasi', icon: '🔔', label: 'Notifikasi', showBadge: true },
-        { href: '/staff-ict/barang', icon: '📦', label: 'Barang' },
-        { href: '/staff-ict/profile', icon: '👤', label: 'Profil' }
+        { href: '/staff-ict/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { href: '/staff-ict/kelulusan', icon: CheckSquare, label: 'Kelulusan' },
+        { href: '/staff-ict/notifikasi', icon: Bell, label: 'Notifikasi', showBadge: true },
+        { href: '/staff-ict/barang', icon: Package, label: 'Barang' },
+        { href: '/staff-ict/profile', icon: User, label: 'Profil' },
       ]
     } else {
-      // user, pelajar, staf
       return [
-        { href: '/user/dashboard', icon: '📊', label: 'Dashboard' },
-        { href: '/user/barang', icon: '📦', label: 'Barang' },
-        { href: '/user/tempahan', icon: '📋', label: 'Tempahan' },
-        { href: '/user/notifikasi', icon: '🔔', label: 'Notifikasi', showBadge: true },
-        { href: '/user/profile', icon: '👤', label: 'Profil' }
+        { href: '/user/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { href: '/user/barang', icon: Package, label: 'Barang' },
+        { href: '/user/tempahan', icon: ClipboardList, label: 'Tempahan' },
+        { href: '/user/notifikasi', icon: Bell, label: 'Notifikasi', showBadge: true },
+        { href: '/user/profile', icon: User, label: 'Profil' },
       ]
     }
   }
@@ -95,35 +101,37 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
   const navItems = getNavItems()
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 bg-white rounded-2xl shadow-lg p-3 flex justify-around items-center z-50">
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`flex flex-col items-center relative ${
-            activeTab === item.label.toLowerCase()
-              ? 'text-blue-600'
-              : 'text-gray-600 hover:text-blue-500'
-          }`}
-        >
-          <div className="text-xl relative">
-            {item.icon}
-            {item.showBadge && unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+    <div className="fixed bottom-4 left-4 right-4 bg-card border rounded-2xl shadow-lg p-3 flex justify-around items-center z-50">
+      {navItems.map((item) => {
+        const Icon = item.icon
+        const isActive = activeTab === item.label.toLowerCase()
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              'flex flex-col items-center relative',
+              isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             )}
-          </div>
-          <div className="text-xs mt-1">{item.label}</div>
-        </Link>
-      ))}
+          >
+            <div className="relative">
+              <Icon className="size-5" />
+              {item.showBadge && unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </div>
+            <div className="text-xs mt-1">{item.label}</div>
+          </Link>
+        )
+      })}
 
-      {/* Logout Button */}
       <button
         onClick={handleLogout}
-        className="flex flex-col items-center text-red-600 hover:text-red-700"
+        className="flex flex-col items-center text-destructive hover:text-destructive/80"
       >
-        <div className="text-xl">🚪</div>
+        <LogOut className="size-5" />
         <div className="text-xs mt-1">Keluar</div>
       </button>
     </div>

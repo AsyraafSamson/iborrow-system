@@ -2,6 +2,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Bell } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -9,6 +14,13 @@ interface Notification {
   keterangan: string
   createdAt: string
   isRead: number
+}
+
+const getNotificationColor = (type: string) => {
+  if (type === 'RETURN_UPDATE') return 'border-blue-200 bg-blue-50/50 dark:bg-blue-950/20'
+  if (type === 'BOOKING_APPROVED') return 'border-green-200 bg-green-50/50 dark:bg-green-950/20'
+  if (type === 'BOOKING_REJECTED') return 'border-destructive/30 bg-destructive/5'
+  return 'border-border'
 }
 
 export default function UserNotifikasi() {
@@ -19,30 +31,21 @@ export default function UserNotifikasi() {
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
-    if (!userData) {
-      router.push('/login')
-      return
-    }
+    if (!userData) { router.push('/login'); return }
     setUser(JSON.parse(userData))
     fetchNotifications()
-    
-    // Mark notifications as viewed
     localStorage.setItem('notificationLastViewedAt', new Date().toISOString())
   }, [router])
 
   const fetchNotifications = async () => {
     try {
-      // Get last viewed timestamp
       const lastViewedAt = localStorage.getItem('notificationLastViewedAt') || ''
-      const url = lastViewedAt 
+      const url = lastViewedAt
         ? `/api/user/notifikasi?lastViewedAt=${encodeURIComponent(lastViewedAt)}`
         : '/api/user/notifikasi'
-      
       const res = await fetch(url)
       const data = await res.json()
-      if (data.success) {
-        setNotifications(data.data || [])
-      }
+      if (data.success) setNotifications(data.data || [])
     } catch (error) {
       console.error('Error fetching notifications:', error)
     } finally {
@@ -57,100 +60,67 @@ export default function UserNotifikasi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ markAllAsRead: true })
       })
-      if (res.ok) {
-        // Refresh notifications
-        fetchNotifications()
-      }
+      if (res.ok) fetchNotifications()
     } catch (error) {
       console.error('Error marking all as read:', error)
     }
   }
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'RETURN_UPDATE': return '↩️'
-      case 'BOOKING_APPROVED': return '✅'
-      case 'BOOKING_REJECTED': return '❌'
-      default: return '🔔'
-    }
-  }
-
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'RETURN_UPDATE': return 'bg-blue-50 border-blue-200'
-      case 'BOOKING_APPROVED': return 'bg-green-50 border-green-200'
-      case 'BOOKING_REJECTED': return 'bg-red-50 border-red-200'
-      default: return 'bg-gray-50 border-gray-200'
-    }
-  }
-
-  if (!user) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>
+  if (!user) return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Skeleton className="h-8 w-32" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 p-3 pb-24">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">🔔 Notifikasi</h1>
-              <p className="text-sm text-gray-600">Kemaskini dan makluman untuk anda</p>
+    <div className="min-h-screen bg-background p-3 pb-24">
+      <div className="max-w-4xl mx-auto space-y-4">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle>Notifikasi</CardTitle>
+                <p className="text-sm text-muted-foreground">Kemaskini dan makluman untuk anda</p>
+              </div>
+              {notifications.some((n: any) => n.isNew) && (
+                <Button size="sm" onClick={markAllAsRead}>Tandakan Semua Dibaca</Button>
+              )}
             </div>
-            {notifications.some((n: any) => n.isNew) && (
-              <button
-                onClick={markAllAsRead}
-                className="bg-blue-500 text-white text-sm px-3 py-2 rounded-lg hover:bg-blue-600"
-              >
-                Tandakan Semua Dibaca
-              </button>
-            )}
-          </div>
-        </div>
+          </CardHeader>
+        </Card>
 
-        {/* Notifications List */}
         <div className="space-y-3">
           {loading ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center text-gray-600">
-              Loading...
-            </div>
+            <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
           ) : notifications.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <div className="text-4xl mb-2">🔔</div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Tiada Notifikasi</h3>
-              <p className="text-gray-600">Anda tidak mempunyai sebarang notifikasi baharu</p>
-            </div>
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Bell className="mx-auto mb-2 h-10 w-10 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-1">Tiada Notifikasi</h3>
+                <p className="text-sm text-muted-foreground">Anda tidak mempunyai sebarang notifikasi baharu</p>
+              </CardContent>
+            </Card>
           ) : (
             notifications.map((notif: any) => (
-              <div
-                key={notif.id}
-                className={`rounded-xl shadow-sm p-4 border ${getNotificationColor(notif.jenisAktiviti)} ${
-                  notif.isNew ? 'border-l-4 border-l-blue-500' : 'opacity-60'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="text-2xl">{getNotificationIcon(notif.jenisAktiviti)}</div>
-                  <div className="flex-1">
-                    <p className={`${notif.isNew ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                      {notif.keterangan}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-xs text-gray-500">
-                        {new Date(notif.createdAt).toLocaleString('ms-MY')}
-                      </span>
-                      {notif.isRead === 0 && (
-                        <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
-                          BELUM DIBACA
-                        </span>
-                      )}
-                    </div>
+              <Card key={notif.id} className={`border ${getNotificationColor(notif.jenisAktiviti)} ${notif.isNew ? 'border-l-4 border-l-primary' : 'opacity-60'}`}>
+                <CardContent className="pt-4">
+                  <p className={notif.isNew ? 'font-semibold text-foreground' : 'text-muted-foreground'}>
+                    {notif.keterangan}
+                  </p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(notif.createdAt).toLocaleString('ms-MY')}
+                    </span>
+                    {notif.isRead === 0 && (
+                      <Badge variant="destructive" className="text-xs">BELUM DIBACA</Badge>
+                    )}
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))
           )}
         </div>
 
-        {/* Bottom Nav */}
         <BottomNav activeTab="notifikasi" />
       </div>
     </div>

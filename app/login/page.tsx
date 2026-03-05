@@ -2,6 +2,10 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -13,7 +17,6 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-
     setError('')
     setSuccess('')
     setLoading(true)
@@ -26,18 +29,13 @@ export default function LoginPage() {
       })
 
       const data = await response.json()
-      console.log('Login response:', data)
 
       if (data.success) {
         setSuccess(data.message + ' - Redirecting...')
-
-        // Store user data and session token
         localStorage.setItem('user', JSON.stringify(data.user))
         if (data.token) {
           localStorage.setItem('session_token', data.token)
         }
-
-        // Redirect
         setTimeout(() => {
           router.push(data.redirectTo)
         }, 1000)
@@ -53,69 +51,55 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
-
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <span className="text-xl font-bold text-white">iB</span>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Sistem i-Borrow</h1>
-            <p className="text-gray-600 mt-2">ILKKM Johor Bahru</p>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <span className="text-xl font-bold text-primary-foreground">iB</span>
           </div>
-
-          {/* Error Message */}
+          <CardTitle className="text-2xl">Sistem i-Borrow</CardTitle>
+          <CardDescription>ILKKM Johor Bahru</CardDescription>
+        </CardHeader>
+        <CardContent>
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-xl">
+            <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
-
-          {/* Success Message */}
           {success && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-xl">
+            <div className="mb-4 rounded-md bg-green-500/15 p-3 text-sm text-green-700">
               {success}
             </div>
           )}
-
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <input
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Masukkan email"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 required
               />
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 required
               />
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Logging in...' : 'Log Masuk'}
-            </button>
+            </Button>
           </form>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
