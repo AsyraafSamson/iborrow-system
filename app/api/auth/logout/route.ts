@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { clearSessionCookie, getCurrentUser } from '@/lib/session'
 import { getD1Database } from '@/lib/database'

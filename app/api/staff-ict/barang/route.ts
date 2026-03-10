@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 
 // Configure for Cloudflare Pages Edge Runtime

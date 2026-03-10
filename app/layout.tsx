@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner'
 export const metadata: Metadata = {
   title: 'I-Borrow ILKKM',
   description: 'Sistem peminjaman barang ICT ILKKM Johor Bahru',
+  icons: { icon: '/icon.svg' },
 }
 
 export default function RootLayout({

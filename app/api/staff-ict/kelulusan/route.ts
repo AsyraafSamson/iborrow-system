@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, requireRole } from '@/lib/session'
 import { logApproval } from '@/lib/activity-logger'
