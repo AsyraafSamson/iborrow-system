@@ -4,7 +4,6 @@ import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
-export const runtime = 'edge'
 
 export async function GET(request: NextRequest) {
   try {

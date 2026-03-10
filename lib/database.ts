@@ -1,6 +1,5 @@
 // Database helper for Cloudflare D1
 import type { D1Database } from '@cloudflare/workers-types'
-import { getRequestContext } from '@cloudflare/next-on-pages'
 
 // TypeScript types for database tables
 export interface User {
@@ -65,9 +64,15 @@ export interface LogAktiviti {
  */
 export function getD1Database(): D1Database | null {
   try {
-    const { env } = getRequestContext()
-    if (env.DB) {
+    // Cloudflare Workers / edge runtime: DB injected into process.env
+    const env = process.env as any
+    if (env.DB && typeof env.DB.prepare === 'function') {
       return env.DB as D1Database
+    }
+    // Node.js runtime in dev: set by getPlatformProxy() in next.config.mjs
+    const cfEnv = (globalThis as any).__cfPlatformEnv
+    if (cfEnv?.DB && typeof cfEnv.DB.prepare === 'function') {
+      return cfEnv.DB as D1Database
     }
     return null
   } catch (error) {

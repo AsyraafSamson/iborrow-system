@@ -4,7 +4,6 @@ import { getD1Database } from '@/lib/database'
 import { logAuth } from '@/lib/activity-logger'
 
 // Configure for Cloudflare Pages Edge Runtime
-export const runtime = 'edge'
 
 export async function POST(request: NextRequest) {
   try {

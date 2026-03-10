@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface Barang {
@@ -143,51 +142,38 @@ export default function StaffBarang() {
           </CardContent>
         </Card>
 
-        <Card className="py-0 overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : barang.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kod</TableHead>
-                  <TableHead>Nama Barang</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Kuantiti</TableHead>
-                  <TableHead>Lokasi</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tindakan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {barang.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-mono text-sm">{item.kodBarang}</TableCell>
-                    <TableCell className="font-medium">{item.namaBarang}</TableCell>
-                    <TableCell>{item.kategori}</TableCell>
-                    <TableCell>
+        {loading ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+        ) : barang.length === 0 ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</CardContent></Card>
+        ) : (
+          <div className="space-y-2">
+            {barang.map((item) => (
+              <Card key={item.id}>
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="font-semibold text-sm">{item.namaBarang}</p>
+                    <Badge variant={statusVariant(item.status)} className="shrink-0 text-xs">{item.status}</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
+                    <span><span className="font-medium text-foreground">Kod:</span> {item.kodBarang}</span>
+                    <span><span className="font-medium text-foreground">Kategori:</span> {item.kategori}</span>
+                    <span>
+                      <span className="font-medium text-foreground">Kuantiti:</span>{' '}
                       <span className={item.kuantitiTersedia === 0 ? 'text-destructive font-medium' : ''}>
                         {item.kuantitiTersedia}
-                      </span>
-                      /{item.kuantitiTotal}
-                    </TableCell>
-                    <TableCell>{item.lokasi}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" className="text-primary h-7 text-xs" onClick={() => { setSelectedBarang(item); setShowDetailModal(true) }}>
-                        Lihat
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Card>
+                      </span>/{item.kuantitiTotal}
+                    </span>
+                    <span><span className="font-medium text-foreground">Lokasi:</span> {item.lokasi}</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="h-7 text-xs w-full" onClick={() => { setSelectedBarang(item); setShowDetailModal(true) }}>
+                    Lihat Butiran
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

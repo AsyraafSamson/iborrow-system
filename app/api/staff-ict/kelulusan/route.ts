@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, requireRole } from '@/lib/session'
 import { logApproval } from '@/lib/activity-logger'
-import { sendNotificationEmail } from '@/lib/email'
 
 // Configure for Cloudflare Pages Edge Runtime
-export const runtime = 'edge'
 
 export async function GET(request: NextRequest) {
   try {

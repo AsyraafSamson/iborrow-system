@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface User {
@@ -204,58 +203,47 @@ export default function AdminPengguna() {
           </CardContent>
         </Card>
 
-        <Card className="py-0 overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">Tiada pengguna dijumpai</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10">
-                    <Checkbox checked={selectedIds.length === filteredUsers.length && filteredUsers.length > 0} onCheckedChange={toggleSelectAll} />
-                  </TableHead>
-                  <TableHead>Nama</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Peranan</TableHead>
-                  <TableHead>Fakulti</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tindakan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <Checkbox checked={selectedIds.includes(u.id)} onCheckedChange={() => toggleSelectId(u.id)} />
-                    </TableCell>
-                    <TableCell className="font-medium">{u.nama}</TableCell>
-                    <TableCell>{u.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{u.peranan}</Badge>
-                    </TableCell>
-                    <TableCell>{u.fakulti || '-'}</TableCell>
-                    <TableCell>
-                      <button
-                        onClick={() => handleToggleStatus(u.id, u.status)}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${u.status === 'aktif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                      >
-                        {u.status}
-                      </button>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-800 text-xs h-7" onClick={() => handleResetPassword(u.id, u.nama)}>Reset</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive text-xs h-7" onClick={() => handleDelete(u.id)}>Padam</Button>
+        {loading ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+        ) : filteredUsers.length === 0 ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada pengguna dijumpai</CardContent></Card>
+        ) : (
+          <div className="space-y-2">
+            {filteredUsers.map((u) => (
+              <Card key={u.id}>
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedIds.includes(u.id)}
+                      onCheckedChange={() => toggleSelectId(u.id)}
+                      className="mt-0.5"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="font-semibold text-sm truncate">{u.nama}</p>
+                        <button
+                          onClick={() => handleToggleStatus(u.id, u.status)}
+                          className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${u.status === 'aktif' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                        >
+                          {u.status}
+                        </button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Card>
+                      <p className="text-xs text-muted-foreground mb-1 truncate">{u.email}</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary" className="text-xs">{u.peranan}</Badge>
+                        <span className="text-xs text-muted-foreground">{u.fakulti || '-'}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-orange-600 hover:text-orange-700" onClick={() => handleResetPassword(u.id, u.nama)}>Reset Password</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-destructive hover:text-destructive" onClick={() => handleDelete(u.id)}>Padam</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         <Dialog open={showModal} onOpenChange={setShowModal}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

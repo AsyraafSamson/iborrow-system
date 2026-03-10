@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 
-export const runtime = 'edge'
 
 // Get user's notifications
 export async function GET(request: NextRequest) {

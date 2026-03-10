@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/auth-middleware'
 
 // Configure for Cloudflare Pages Edge Runtime
-export const runtime = 'edge'
 export async function GET(request: NextRequest) {
   try {
     // Require staff-ict role

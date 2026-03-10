@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
-import { sendNotificationEmail, getStaffUsers } from '@/lib/email'
 
-export const runtime = 'edge'
 
 // User creates return request
 export async function POST(request: NextRequest) {

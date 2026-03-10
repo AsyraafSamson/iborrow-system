@@ -236,59 +236,43 @@ export default function AdminBarang() {
           </CardContent>
         </Card>
 
-        <Card className="py-0 overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : filteredBarang.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10">
+        {loading ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+        ) : filteredBarang.length === 0 ? (
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</CardContent></Card>
+        ) : (
+          <div className="space-y-2">
+            {filteredBarang.map((item) => (
+              <Card key={item.id}>
+                <CardContent className="pt-4 pb-3">
+                  <div className="flex items-start gap-3">
                     <Checkbox
-                      checked={selectedIds.length === filteredBarang.length && filteredBarang.length > 0}
-                      onCheckedChange={toggleSelectAll}
+                      checked={selectedIds.includes(item.id)}
+                      onCheckedChange={() => toggleSelectId(item.id)}
+                      className="mt-0.5"
                     />
-                  </TableHead>
-                  <TableHead>Kod</TableHead>
-                  <TableHead>Nama Barang</TableHead>
-                  <TableHead>Kategori</TableHead>
-                  <TableHead>Kuantiti</TableHead>
-                  <TableHead>Lokasi</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tindakan</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredBarang.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedIds.includes(item.id)}
-                        onCheckedChange={() => toggleSelectId(item.id)}
-                      />
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">{item.kodBarang}</TableCell>
-                    <TableCell className="font-medium">{item.namaBarang}</TableCell>
-                    <TableCell>{item.kategori}</TableCell>
-                    <TableCell>{item.kuantitiTersedia}/{item.kuantitiTotal}</TableCell>
-                    <TableCell>{item.lokasi}</TableCell>
-                    <TableCell>
-                      <Badge variant={statusVariant(item.status)}>{item.status}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => openEditModal(item)}>Edit</Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => handleDelete(item.id)}>Padam</Button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="font-semibold text-sm truncate">{item.namaBarang}</p>
+                        <Badge variant={statusVariant(item.status)} className="shrink-0 text-xs">{item.status}</Badge>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Card>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground mb-2">
+                        <span><span className="font-medium text-foreground">Kod:</span> {item.kodBarang}</span>
+                        <span><span className="font-medium text-foreground">Kategori:</span> {item.kategori}</span>
+                        <span><span className="font-medium text-foreground">Kuantiti:</span> {item.kuantitiTersedia}/{item.kuantitiTotal}</span>
+                        <span><span className="font-medium text-foreground">Lokasi:</span> {item.lokasi}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => openEditModal(item)}>Edit</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-destructive hover:text-destructive" onClick={() => handleDelete(item.id)}>Padam</Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Add/Edit Modal */}
         <Dialog open={showModal} onOpenChange={setShowModal}>
@@ -368,7 +352,8 @@ export default function AdminBarang() {
               Barang ini tidak boleh dipadam kerana mempunyai tempahan aktif.
               Sila selesaikan atau batalkan tempahan aktif terlebih dahulu.
             </div>
-            <Table>
+            <div className="overflow-x-auto">
+            <Table className="min-w-[500px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Pemohon</TableHead>
@@ -400,6 +385,7 @@ export default function AdminBarang() {
                 ))}
               </TableBody>
             </Table>
+            </div>
             <DialogFooter>
               <Button onClick={() => setShowTempahanModal(false)}>Tutup</Button>
             </DialogFooter>

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireRole } from '@/lib/session'
 
-export const runtime = 'edge'
 
 // Get staff notifications
 export async function GET(request: NextRequest) {

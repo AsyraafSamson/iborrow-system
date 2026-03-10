@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, requireRole } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
 
-export const runtime = 'edge'
 
 // Get all return requests for staff
 export async function GET(request: NextRequest) {

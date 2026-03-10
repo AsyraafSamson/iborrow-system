@@ -4,7 +4,6 @@ import { logCRUD } from '@/lib/activity-logger'
 import { hashPassword } from '@/lib/password'
 
 // Configure for Cloudflare Pages Edge Runtime
-export const runtime = 'edge'
 export async function GET(request: NextRequest) {
   try {
     const db = (process.env as any).DB
