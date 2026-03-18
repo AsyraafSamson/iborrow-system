@@ -39,11 +39,11 @@ wrangler d1 execute iborrow --remote --command="SELECT * FROM barang;"
 # Pull the latest remote D1 data into the local-only snapshot used by npm run dev
 npm run d1:sync-snapshot
 
-# Run Next.js dev server (uses the synced local-only snapshot)
+# Run the Cloudflare Pages-compatible local server
 npm run dev
 
-# Test with Cloudflare Pages locally (uses live D1)
-npx wrangler pages dev .next --compatibility-flag=nodejs_compat --binding DB=iborrow
+# Raw Next.js dev server for UI-only debugging
+npm run dev:next
 ```
 
 ### Database Queries
@@ -125,7 +125,8 @@ wrangler pages dev .next --compatibility-flag=nodejs_compat --binding DB=iborrow
 
 ## Notes
 
-- `npm run dev` uses `data/remote-d1-snapshot.local.json`, which you can refresh with `npm run d1:sync-snapshot`
+- `npm run dev` serves the Cloudflare Pages-compatible build locally
+- `npm run dev:next` is available for UI-only debugging
 - Production automatically uses D1 database
 - Password hashing should be implemented before production use (currently using plain text)
 - Schema includes indexes for better query performance

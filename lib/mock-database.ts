@@ -1,5 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs'
-import path from 'node:path'
 import bundledSnapshot from '@/data/remote-d1-snapshot.json'
 
 type UserRole = 'admin' | 'staff-ict' | 'pelajar' | 'pengajar' | 'staff-pentadbiran'
@@ -95,22 +93,7 @@ interface SnapshotShape {
   }
 }
 
-function loadSnapshot(): SnapshotShape {
-  const localSnapshotPath = path.join(process.cwd(), 'data', 'remote-d1-snapshot.local.json')
-
-  if (process.env.NODE_ENV !== 'production' && existsSync(localSnapshotPath)) {
-    try {
-      const raw = readFileSync(localSnapshotPath, 'utf8')
-      return JSON.parse(raw) as SnapshotShape
-    } catch (error) {
-      console.warn('Gagal membaca snapshot tempatan. Guna snapshot terbina dalam.', error)
-    }
-  }
-
-  return bundledSnapshot as SnapshotShape
-}
-
-const data = loadSnapshot()
+const data = bundledSnapshot as SnapshotShape
 
 function cloneArray<T>(items: T[]): T[] {
   return items.map((item) => ({ ...item }))

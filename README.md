@@ -80,16 +80,16 @@ npm run d1:init
 # Pull the latest production/remote D1 data into the local-only snapshot
 npm run d1:sync-snapshot
 
-# Local development (uses the synced local-only snapshot)
+# Local development with Cloudflare Pages compatibility
 npm run dev
 
-# Test with live D1 database locally
-npm run pages:dev
+# Raw Next.js dev server for UI-only debugging
+npm run dev:next
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-`npm run dev` uses the latest pulled snapshot from `data/remote-d1-snapshot.local.json`, so refresh it with `npm run d1:sync-snapshot` before local testing if the remote data has changed.
+`npm run dev` now builds the Cloudflare Pages output and serves it locally, which matches the deployment runtime. Use `npm run dev:next` only for UI-only debugging.
 
 ## 📦 Deployment ke Cloudflare Pages
 

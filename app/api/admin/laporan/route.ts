@@ -1,4 +1,4 @@
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getMockLaporanData } from '@/lib/mock-database'
