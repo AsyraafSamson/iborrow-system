@@ -1,6 +1,7 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getMockAdminDashboardStats } from '@/lib/mock-database'
 
 // Configure for Cloudflare Pages Edge Runtime
 export async function GET(request: NextRequest) {
@@ -9,15 +10,15 @@ export async function GET(request: NextRequest) {
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
-        data: {
-          totalUsers: 45,
-          totalBarang: 128,
-          tempahanAktif: 23,
-          tempahanPending: 8,
-          totalKuantiti: 450
-        }
+        data: getMockAdminDashboardStats()
       })
     }
 
@@ -47,3 +48,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+

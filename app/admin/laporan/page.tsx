@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
@@ -141,7 +142,12 @@ export default function AdminLaporan() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Tiada data</p>
+              <EmptyState
+                icon={FileBarChart}
+                title="Tiada data tempahan bulanan"
+                description="Graf ini akan dipaparkan apabila sistem mempunyai rekod tempahan mengikut bulan."
+                className="border-0 bg-transparent px-0 py-4"
+              />
             )}
           </CardContent>
         </Card>
@@ -178,7 +184,12 @@ export default function AdminLaporan() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Tiada data</p>
+              <EmptyState
+                icon={Package}
+                title="Tiada data barang popular"
+                description="Senarai ini akan diisi apabila terdapat tempahan yang telah direkodkan."
+                className="border-0 bg-transparent px-0 py-4"
+              />
             )}
           </CardContent>
         </Card>
@@ -212,7 +223,12 @@ export default function AdminLaporan() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Tiada data</p>
+              <EmptyState
+                icon={FileBarChart}
+                title="Tiada data kategori"
+                description="Maklumat kategori akan muncul apabila inventori mempunyai rekod barang."
+                className="border-0 bg-transparent px-0 py-4"
+              />
             )}
           </CardContent>
         </Card>

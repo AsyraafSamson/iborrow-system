@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Inbox } from 'lucide-react'
 
 interface Tempahan {
   id: string
@@ -183,9 +185,19 @@ export default function StaffKelulusan() {
 
         <div className="space-y-3">
           {loading ? (
-            <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+            <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan permohonan tempahan...</CardContent></Card>
           ) : filteredTempahan.length === 0 ? (
-            <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada tempahan {filterStatus !== 'all' ? filterStatus.toLowerCase() : ''}</CardContent></Card>
+            <Card>
+              <CardContent className="p-4">
+                <EmptyState
+                  icon={Inbox}
+                  title="Tiada tempahan untuk dipaparkan"
+                  description={filterStatus === 'all'
+                    ? 'Belum ada tempahan yang direkodkan buat masa ini.'
+                    : `Tiada tempahan dengan status ${filterStatus.toLowerCase()} pada masa ini.`}
+                />
+              </CardContent>
+            </Card>
           ) : (
             filteredTempahan.map((booking) => (
               <Card key={booking.id}>

@@ -1,8 +1,9 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
+import { getMockBarang } from '@/lib/mock-database'
 
 // Configure for Cloudflare Pages Edge Runtime
 export async function GET(request: NextRequest) {
@@ -11,24 +12,15 @@ export async function GET(request: NextRequest) {
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
-        barang: [
-          {
-            id: 'brg_001',
-            namaBarang: 'Laptop Dell Latitude 5420',
-            kategori: 'Laptop',
-            kodBarang: 'LT-001',
-            kuantitiTersedia: 5,
-            kuantitiTotal: 10,
-            lokasi: 'Stor ICT',
-            status: 'Tersedia',
-            hargaPerolehan: 3500.00,
-            tarikhPerolehan: '2024-01-15',
-            catatan: 'i5-11th Gen, 8GB RAM',
-            createdAt: new Date().toISOString()
-          }
-        ]
+        barang: getMockBarang()
       })
     }
 
@@ -76,6 +68,12 @@ export async function POST(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Barang berjaya ditambah (Mock)',
@@ -177,6 +175,12 @@ export async function PUT(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Barang berjaya dikemaskini (Mock)'
@@ -307,6 +311,12 @@ export async function DELETE(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       const count = body.ids ? body.ids.length : 1
       return NextResponse.json({
         success: true,
@@ -490,3 +500,4 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+

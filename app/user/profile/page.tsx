@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
+import { logoutUser } from '@/lib/client-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -94,11 +96,11 @@ export default function UserProfile() {
     e.preventDefault()
     if (!profile) return
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setMessage({ type: 'error', text: 'Password baru dan pengesahan tidak sepadan' })
+      setMessage({ type: 'error', text: 'Kata laluan baharu dan pengesahan tidak sepadan' })
       return
     }
     if (passwordData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'Password baru mestilah sekurang-kurangnya 6 aksara' })
+      setMessage({ type: 'error', text: 'Kata laluan baharu mestilah sekurang-kurangnya 6 aksara' })
       return
     }
     try {
@@ -114,15 +116,20 @@ export default function UserProfile() {
       })
       const data = await response.json()
       if (data.success) {
-        setMessage({ type: 'success', text: 'Password berjaya ditukar' })
+        setMessage({ type: 'success', text: 'Kata laluan berjaya ditukar' })
         setChangingPassword(false)
         setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
       } else {
-        setMessage({ type: 'error', text: data.error || 'Gagal tukar password' })
+        setMessage({ type: 'error', text: data.error || 'Gagal menukar kata laluan' })
       }
     } catch (error) {
       setMessage({ type: 'error', text: 'Ralat rangkaian' })
     }
+  }
+
+  const handleLogout = async () => {
+    if (!confirm('Adakah anda pasti untuk log keluar?')) return
+    await logoutUser(router.push)
   }
 
   if (!user || loading) return (
@@ -133,7 +140,7 @@ export default function UserProfile() {
 
   if (!profile) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <p className="text-muted-foreground">Profile not found</p>
+      <p className="text-muted-foreground">Profil tidak ditemui</p>
     </div>
   )
 
@@ -143,10 +150,19 @@ export default function UserProfile() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Profil Saya</CardTitle>
-              {!editing && !changingPassword && (
-                <Button size="sm" onClick={() => setEditing(true)}>Edit Profil</Button>
-              )}
+              <div>
+                <CardTitle>Profil Saya</CardTitle>
+                <p className="text-sm text-muted-foreground">Kemaskini maklumat diri dan urus keselamatan akaun anda</p>
+              </div>
+              <div className="flex gap-2">
+                {!editing && !changingPassword && (
+                  <Button size="sm" onClick={() => setEditing(true)}>Edit Profil</Button>
+                )}
+                <Button variant="outline" className="border-destructive/20 text-destructive hover:text-destructive" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4" />
+                  Log Keluar
+                </Button>
+              </div>
             </div>
           </CardHeader>
         </Card>
@@ -214,19 +230,19 @@ export default function UserProfile() {
             ) : changingPassword ? (
               <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Password Semasa</Label>
+                  <Label>Kata Laluan Semasa</Label>
                   <Input type="password" value={passwordData.currentPassword} onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Password Baru</Label>
+                  <Label>Kata Laluan Baharu</Label>
                   <Input type="password" value={passwordData.newPassword} onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})} required minLength={6} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Pengesahan Password Baru</Label>
+                  <Label>Pengesahan Kata Laluan Baharu</Label>
                   <Input type="password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})} required />
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button type="submit">Tukar Password</Button>
+                  <Button type="submit">Tukar Kata Laluan</Button>
                   <Button type="button" variant="outline" onClick={() => setChangingPassword(false)}>Batal</Button>
                 </div>
               </form>
@@ -248,7 +264,7 @@ export default function UserProfile() {
                   ))}
                 </div>
                 <div className="pt-4 border-t border-border">
-                  <Button variant="secondary" onClick={() => setChangingPassword(true)}>Tukar Password</Button>
+                  <Button variant="secondary" onClick={() => setChangingPassword(true)}>Tukar Kata Laluan</Button>
                 </div>
               </div>
             )}

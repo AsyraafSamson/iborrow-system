@@ -77,22 +77,19 @@ npm run d1:init
 ### 3. Development
 
 ```powershell
-# Local development (uses mock data)
+# Pull the latest production/remote D1 data into the local-only snapshot
+npm run d1:sync-snapshot
+
+# Local development (uses the synced local-only snapshot)
 npm run dev
 
-# Test with actual D1 database locally
+# Test with live D1 database locally
 npm run pages:dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-### 4. Default Login Credentials
-
-| Email | Password | Role |
-|-------|----------|------|
-| admin@iborrow.com | admin123 | Admin |
-| staffict@iborrow.com | staffict123 | Staff ICT |
-| user@iborrow.com | user123 | User |
+`npm run dev` uses the latest pulled snapshot from `data/remote-d1-snapshot.local.json`, so refresh it with `npm run d1:sync-snapshot` before local testing if the remote data has changed.
 
 ## 📦 Deployment ke Cloudflare Pages
 
@@ -141,6 +138,7 @@ After first deployment:
 | `npm run d1:init` | Initialize database with schema |
 | `npm run d1:query` | Execute D1 query |
 | `npm run d1:list` | List all D1 databases |
+| `npm run d1:sync-snapshot` | Pull remote D1 data into the local dev snapshot |
 | `npm run pages:dev` | Test locally with D1 |
 
 ## 📊 Database Schema

@@ -42,6 +42,8 @@ next-env.d.ts
 
 # wrangler local state
 .wrangler/
+# local D1 snapshot override
+data/remote-d1-snapshot.local.json
 # Force redeploy - Activity logging update
 
 # Windows reserved device file accidentally created

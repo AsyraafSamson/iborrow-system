@@ -20,9 +20,9 @@ export default function TetapanSistem() {
   const [tetapan, setTetapan] = useState({
     namaSistem: 'iBorrow System',
     namaOrganisasi: 'Institut Latihan Kemahiran Malaysia (ILKKM)',
-    emailAdmin: 'admin@ilkkm.edu.my',
-    noTelefon: '03-1234 5678',
-    alamat: 'Kuala Lumpur, Malaysia',
+    emailAdmin: process.env.NEXT_PUBLIC_ADMIN_EMAIL || '',
+    noTelefon: process.env.NEXT_PUBLIC_ADMIN_PHONE || '',
+    alamat: process.env.NEXT_PUBLIC_ORG_ADDRESS || '',
     versiSistem: '1.0.0',
     maksTempahanSerentak: '3',
     tempohTempahanMaksimum: '14',

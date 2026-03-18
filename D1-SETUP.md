@@ -36,10 +36,13 @@ wrangler d1 execute iborrow --remote --command="SELECT * FROM barang;"
 
 ### Local Development
 ```bash
-# Run Next.js dev server (uses mock data)
+# Pull the latest remote D1 data into the local-only snapshot used by npm run dev
+npm run d1:sync-snapshot
+
+# Run Next.js dev server (uses the synced local-only snapshot)
 npm run dev
 
-# Test with Cloudflare Pages locally (uses actual D1)
+# Test with Cloudflare Pages locally (uses live D1)
 npx wrangler pages dev .next --compatibility-flag=nodejs_compat --binding DB=iborrow
 ```
 
@@ -120,19 +123,9 @@ $env:WRANGLER_LOG="debug"
 wrangler pages dev .next --compatibility-flag=nodejs_compat --binding DB=iborrow
 ```
 
-## Default Login Credentials
-
-After running schema.sql, these accounts will be available:
-
-| Email | Password | Role |
-|-------|----------|------|
-| admin@iborrow.com | admin123 | admin |
-| staffict@iborrow.com | staffict123 | staff-ict |
-| user@iborrow.com | user123 | user |
-
 ## Notes
 
-- Development mode uses mock data if D1 is not available
+- `npm run dev` uses `data/remote-d1-snapshot.local.json`, which you can refresh with `npm run d1:sync-snapshot`
 - Production automatically uses D1 database
 - Password hashing should be implemented before production use (currently using plain text)
 - Schema includes indexes for better query performance

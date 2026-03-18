@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -7,6 +7,7 @@ import { getD1Database, type User } from '@/lib/database'
 import { verifyPassword } from '@/lib/password'
 import { createSessionToken, setSessionCookie } from '@/lib/session'
 import { logAuth } from '@/lib/activity-logger'
+import { findMockUserByEmail } from '@/lib/mock-database'
 
 function getRedirectPath(role: string) {
   switch (role) {
@@ -42,15 +43,73 @@ export async function POST(request: NextRequest) {
       dbType: typeof (process.env as any).DB
     })
 
-    if (!db) {
-      console.log('❌ D1 Database not available, using fallback')
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Database tidak tersedia. Sila hubungi admin.'
-        },
-        { status: 503 }
-      )
+    if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Database tidak tersedia. Sila hubungi admin.'
+          },
+          { status: 503 }
+        )
+      }
+
+      console.log('❌ D1 Database not available, using mock users')
+
+      const user = findMockUserByEmail(email)
+      if (!user) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Email atau password salah'
+          },
+          { status: 401 }
+        )
+      }
+
+      const isPasswordValid = await verifyPassword(password, user.password_hash)
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Email atau password salah'
+          },
+          { status: 401 }
+        )
+      }
+
+      const { password_hash, ...userWithoutPassword } = user
+      const sessionToken = createSessionToken({
+        id: user.id,
+        email: user.email,
+        nama: user.nama,
+        peranan: user.peranan,
+        fakulti: user.fakulti ?? undefined,
+        no_telefon: user.no_telefon ?? undefined,
+        no_matrik: user.no_matrik ?? undefined,
+        no_staf: user.no_staf ?? undefined
+      })
+
+      const response = NextResponse.json({
+        success: true,
+        user: userWithoutPassword,
+        token: sessionToken,
+        redirectTo: getRedirectPath(user.peranan),
+        message: 'Login berjaya'
+      })
+
+      setSessionCookie(response, {
+        id: user.id,
+        email: user.email,
+        nama: user.nama,
+        peranan: user.peranan,
+        fakulti: user.fakulti ?? undefined,
+        no_telefon: user.no_telefon ?? undefined,
+        no_matrik: user.no_matrik ?? undefined,
+        no_staf: user.no_staf ?? undefined
+      })
+
+      return response
     }
     
     console.log('✅ D1 Database connected, attempting login for:', email)

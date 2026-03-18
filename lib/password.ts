@@ -9,7 +9,7 @@ import bcrypt from 'bcryptjs'
  */
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 10
-  return await bcrypt.hash(password, saltRounds)
+  return bcrypt.hashSync(password, saltRounds)
 }
 
 /**
@@ -19,21 +19,17 @@ export async function hashPassword(password: string): Promise<string> {
  * @returns True if password matches, false otherwise
  */
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(password, hash)
+  return bcrypt.compareSync(password, hash)
 }
 
 /**
  * Generate hashed passwords for migration
  * This is a helper function to create hashes for existing passwords
  */
-export async function generateHashedPasswords() {
-  const passwords = {
-    admin123: await hashPassword('admin123'),
-    staffict123: await hashPassword('staffict123'),
-    user123: await hashPassword('user123'),
-    pengajar123: await hashPassword('pengajar123'),
-    staff123: await hashPassword('staff123'),
-  }
+export async function generateHashedPasswords(passwords: string[]) {
+  const hashedPasswords = Object.fromEntries(
+    passwords.map((password) => [password, bcrypt.hashSync(password, 10)])
+  )
 
-  return passwords
+  return hashedPasswords
 }

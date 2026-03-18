@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PackageSearch } from 'lucide-react'
 
 interface Barang {
   id: string
@@ -237,9 +239,17 @@ export default function AdminBarang() {
         </Card>
 
         {loading ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan senarai barang...</CardContent></Card>
         ) : filteredBarang.length === 0 ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</CardContent></Card>
+          <Card>
+            <CardContent className="p-4">
+              <EmptyState
+                icon={PackageSearch}
+                title="Tiada barang ditemui"
+                description="Cuba ubah carian atau kategori anda. Anda juga boleh tambah barang baharu ke dalam inventori."
+              />
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2">
             {filteredBarang.map((item) => (

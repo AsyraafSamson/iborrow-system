@@ -1,0 +1,14 @@
+{
+  "generatedAt": null,
+  "source": {
+    "databaseName": "iborrow",
+    "databaseId": "redacted"
+  },
+  "tables": {
+    "users": [],
+    "barang": [],
+    "tempahan": [],
+    "log_aktiviti": [],
+    "return_requests": []
+  }
+}

@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PackageSearch } from 'lucide-react'
 
 interface Barang {
   id: string
@@ -143,9 +145,17 @@ export default function StaffBarang() {
         </Card>
 
         {loading ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan senarai barang...</CardContent></Card>
         ) : barang.length === 0 ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada barang dijumpai</CardContent></Card>
+          <Card>
+            <CardContent className="p-4">
+              <EmptyState
+                icon={PackageSearch}
+                title="Tiada barang ditemui"
+                description="Belum ada barang yang sepadan dengan penapis semasa. Cuba ubah carian atau status."
+              />
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2">
             {barang.map((item) => (

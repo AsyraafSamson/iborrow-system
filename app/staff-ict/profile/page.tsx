@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { LogOut } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
+import { logoutUser } from '@/lib/client-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -89,6 +91,11 @@ export default function StaffProfile() {
     }
   }
 
+  const handleLogout = async () => {
+    if (!confirm('Adakah anda pasti untuk log keluar?')) return
+    await logoutUser(router.push)
+  }
+
   if (!user) return (
     <div className="min-h-screen bg-background flex items-center justify-center">
       <Skeleton className="h-8 w-32" />
@@ -100,8 +107,16 @@ export default function StaffProfile() {
       <div className="max-w-6xl mx-auto space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Profil Staff ICT</CardTitle>
-            <p className="text-sm text-muted-foreground">Urus maklumat profil anda</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle>Profil Staff ICT</CardTitle>
+                <p className="text-sm text-muted-foreground">Urus maklumat akaun dan keselamatan anda</p>
+              </div>
+              <Button variant="outline" className="border-destructive/20 text-destructive hover:text-destructive" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" />
+                Log Keluar
+              </Button>
+            </div>
           </CardHeader>
         </Card>
 

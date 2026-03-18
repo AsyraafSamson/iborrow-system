@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
@@ -18,6 +18,12 @@ export async function POST(request: NextRequest) {
     const { bookingId, urgency, notes } = await request.json()
 
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Return request submitted (Mock)',
@@ -144,6 +150,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         data: []
@@ -170,3 +182,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
+

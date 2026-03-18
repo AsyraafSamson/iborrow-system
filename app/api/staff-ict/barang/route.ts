@@ -1,6 +1,7 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getMockBarangCollection } from '@/lib/mock-database'
 
 // Configure for Cloudflare Pages Edge Runtime
 
@@ -14,77 +15,18 @@ export async function GET(request: NextRequest) {
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
-      const mockBarang = [
-        {
-          id: 'brg_001',
-          namaBarang: 'Laptop Dell Latitude 5420',
-          kategori: 'Laptop',
-          kodBarang: 'LT-001',
-          kuantitiTersedia: 8,
-          kuantitiTotal: 10,
-          lokasi: 'Stor ICT',
-          status: 'Tersedia',
-          hargaPerolehan: 3500.00,
-          tarikhPerolehan: '2024-01-15',
-          catatan: 'Untuk kegunaan pelajar',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'brg_002',
-          namaBarang: 'Projektor Epson EB-X05',
-          kategori: 'Projektor',
-          kodBarang: 'PJ-001',
-          kuantitiTersedia: 5,
-          kuantitiTotal: 6,
-          lokasi: 'Stor ICT',
-          status: 'Tersedia',
-          hargaPerolehan: 1200.00,
-          tarikhPerolehan: '2024-02-20',
-          catatan: '',
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 'brg_003',
-          namaBarang: 'Kamera DSLR Canon 800D',
-          kategori: 'Kamera',
-          kodBarang: 'KM-001',
-          kuantitiTersedia: 0,
-          kuantitiTotal: 3,
-          lokasi: 'Stor ICT',
-          status: 'Tidak Tersedia',
-          hargaPerolehan: 2800.00,
-          tarikhPerolehan: '2023-11-10',
-          catatan: 'Semua dipinjam',
-          createdAt: new Date().toISOString()
-        }
-      ]
-
-      let filtered = mockBarang
-
-      if (search) {
-        filtered = filtered.filter(b =>
-          b.namaBarang.toLowerCase().includes(search.toLowerCase()) ||
-          b.kodBarang.toLowerCase().includes(search.toLowerCase())
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
         )
       }
-
-      if (kategori && kategori !== 'all') {
-        filtered = filtered.filter(b => b.kategori === kategori)
-      }
-
-      if (status && status !== 'all') {
-        filtered = filtered.filter(b => b.status === status)
-      }
+      const mockCollection = getMockBarangCollection({ search, kategori, status })
 
       return NextResponse.json({
         success: true,
-        barang: filtered,
-        stats: {
-          totalItems: mockBarang.length,
-          tersedia: mockBarang.filter(b => b.status === 'Tersedia').length,
-          dipinjam: mockBarang.filter(b => b.status === 'Tidak Tersedia').length,
-          rosak: mockBarang.filter(b => b.status === 'Rosak').length
-        }
+        barang: mockCollection.barang,
+        stats: mockCollection.stats
       })
     }
 
@@ -143,3 +85,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+

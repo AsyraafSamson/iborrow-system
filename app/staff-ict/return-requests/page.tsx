@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { RotateCcw } from 'lucide-react'
 
 interface ReturnRequest {
   id: string
@@ -192,9 +194,17 @@ export default function StaffReturnRequests() {
 
         <div className="space-y-3">
           {loading ? (
-            <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+            <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan permohonan pemulangan...</CardContent></Card>
           ) : requests.length === 0 ? (
-            <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada permohonan pemulangan</CardContent></Card>
+            <Card>
+              <CardContent className="p-4">
+                <EmptyState
+                  icon={RotateCcw}
+                  title="Tiada permohonan pemulangan"
+                  description="Apabila pengguna menghantar permohonan pemulangan, ia akan dipaparkan di sini untuk tindakan anda."
+                />
+              </CardContent>
+            </Card>
           ) : (
             requests.map((request) => (
               <Card key={request.id}>

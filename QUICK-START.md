@@ -21,10 +21,9 @@
    ```
    Open http://localhost:3000
 
-2. **Login with Test Account**
-   - Email: `admin@iborrow.com`
-   - Password: `admin123`
-   - Should redirect to `/admin/dashboard`
+2. **Login with a valid local account**
+   - Use an account that exists in your local D1 data
+   - You should be redirected according to the account role
 
 3. **Test with Real D1** (Optional)
    ```powershell

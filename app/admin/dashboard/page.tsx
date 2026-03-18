@@ -3,7 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowRight, Box, Clock3, ShieldCheck, Users } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -69,36 +73,65 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background p-3 pb-24">
       <div className="max-w-6xl mx-auto space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Dashboard Admin</CardTitle>
-            <p className="text-sm text-muted-foreground">Selamat datang, {user.nama}</p>
+        <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-background to-background">
+          <CardHeader className="space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-2">
+                <Badge variant="secondary" className="w-fit">Peranan: Pentadbir</Badge>
+                <CardTitle className="text-2xl">Selamat datang, {user.nama}</CardTitle>
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                  Pantau pengguna, semak stok barang, dan lihat tempahan yang memerlukan perhatian anda.
+                </p>
+              </div>
+              <ShieldCheck className="hidden h-10 w-10 text-primary md:block" />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button asChild size="lg" className="justify-between">
+                <Link href="/admin/barang">
+                  Urus Barang
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild variant="outline">
+                  <Link href="/admin/pengguna">Urus Pengguna</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/admin/laporan">Lihat Laporan</Link>
+                </Button>
+              </div>
+            </div>
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Card className="border-blue-100 bg-blue-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-blue-600">{loading ? '...' : dashboardData.totalUsers}</div>
-              <div className="text-sm text-muted-foreground mt-1">Total Pengguna</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Jumlah Pengguna</div>
+              <div className="text-xs text-muted-foreground">Akaun aktif dalam sistem</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-green-100 bg-green-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-green-600">{loading ? '...' : dashboardData.totalBarang}</div>
-              <div className="text-sm text-muted-foreground mt-1">Total Barang</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Jumlah Barang</div>
+              <div className="text-xs text-muted-foreground">Inventori yang sedang direkodkan</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-purple-100 bg-purple-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-purple-600">{loading ? '...' : dashboardData.tempahanAktif}</div>
               <div className="text-sm text-muted-foreground mt-1">Tempahan Aktif</div>
+              <div className="text-xs text-muted-foreground">Sedang berjalan atau telah diluluskan</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-orange-100 bg-orange-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-orange-600">{loading ? '...' : dashboardData.perluKelulusan}</div>
-              <div className="text-sm text-muted-foreground mt-1">Perlu Kelulusan</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Perlu Kelulusan</div>
+              <div className="text-xs text-muted-foreground">Semak segera bersama staff ICT</div>
             </CardContent>
           </Card>
         </div>
@@ -119,7 +152,12 @@ export default function AdminDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-sm">Tiada aktiviti terkini</div>
+                <EmptyState
+                  icon={Clock3}
+                  title="Aktiviti masih tenang"
+                  description="Belum ada aktiviti baharu untuk dipaparkan. Semak semula selepas pengguna atau staff membuat tindakan."
+                  className="border-0 bg-transparent px-0 py-4"
+                />
               )}
             </div>
           </CardContent>
@@ -127,20 +165,22 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardTitle className="text-base">Tindakan Utama</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-3">
-              <Link href="/admin/pengguna" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
-                Urus Pengguna
-              </Link>
-              <Link href="/admin/barang" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
+              <Link href="/admin/barang" className="rounded-xl bg-primary p-4 text-center text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+                <Box className="mx-auto mb-2 h-5 w-5" />
                 Urus Barang
               </Link>
-              <Link href="/admin/laporan" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
+              <Link href="/admin/pengguna" className="rounded-xl bg-secondary p-4 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                <Users className="mx-auto mb-2 h-5 w-5" />
+                Urus Pengguna
+              </Link>
+              <Link href="/admin/laporan" className="rounded-xl bg-secondary p-4 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
                 Lihat Laporan
               </Link>
-              <Link href="/admin/tetapan/sistem" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
+              <Link href="/admin/tetapan/sistem" className="rounded-xl bg-secondary p-4 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
                 Tetapan Sistem
               </Link>
             </div>

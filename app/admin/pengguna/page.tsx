@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,6 +11,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Users } from 'lucide-react'
 
 interface User {
   id: string
@@ -68,7 +70,7 @@ export default function AdminPengguna() {
       })
       const data = await res.json()
       if (data.success) {
-        alert(data.message + '\nPassword default: password123')
+        alert(data.message + '\nKata laluan lalai: password123')
         setShowModal(false)
         resetForm()
         fetchUsers()
@@ -76,14 +78,14 @@ export default function AdminPengguna() {
         alert(data.error || 'Operasi gagal')
       }
     } catch (error) {
-      alert('Network error')
+      alert('Ralat rangkaian')
     } finally {
       setLoading(false)
     }
   }
 
   const handleResetPassword = async (id: string, nama: string) => {
-    if (!confirm(`Reset password untuk ${nama}?\nPassword akan ditukar kepada: password123`)) return
+    if (!confirm(`Set semula kata laluan untuk ${nama}?\nKata laluan akan ditukar kepada: password123`)) return
     try {
       const res = await fetch('/api/admin/pengguna', {
         method: 'PUT',
@@ -93,7 +95,7 @@ export default function AdminPengguna() {
       const data = await res.json()
       alert(data.success ? data.message : (data.error || 'Gagal reset password'))
     } catch (error) {
-      alert('Network error')
+      alert('Ralat rangkaian')
     }
   }
 
@@ -204,9 +206,17 @@ export default function AdminPengguna() {
         </Card>
 
         {loading ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan senarai pengguna...</CardContent></Card>
         ) : filteredUsers.length === 0 ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Tiada pengguna dijumpai</CardContent></Card>
+          <Card>
+            <CardContent className="p-4">
+              <EmptyState
+                icon={Users}
+                title="Tiada pengguna ditemui"
+                description="Semak semula kata carian atau penapis peranan anda. Anda juga boleh tambah pengguna baharu."
+              />
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-2">
             {filteredUsers.map((u) => (
@@ -234,7 +244,7 @@ export default function AdminPengguna() {
                         <span className="text-xs text-muted-foreground">{u.fakulti || '-'}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-orange-600 hover:text-orange-700" onClick={() => handleResetPassword(u.id, u.nama)}>Reset Password</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-orange-600 hover:text-orange-700" onClick={() => handleResetPassword(u.id, u.nama)}>Set Semula Kata Laluan</Button>
                         <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-destructive hover:text-destructive" onClick={() => handleDelete(u.id)}>Padam</Button>
                       </div>
                     </div>
@@ -288,7 +298,7 @@ export default function AdminPengguna() {
                 )}
               </div>
               <div className="rounded-md bg-yellow-50 border border-yellow-200 p-3 text-sm text-yellow-800">
-                Password default: <strong>password123</strong>
+                Kata laluan lalai: <strong>password123</strong>
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowModal(false)}>Batal</Button>

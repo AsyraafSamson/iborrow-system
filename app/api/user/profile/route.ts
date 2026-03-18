@@ -1,31 +1,46 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
+import { findMockUserById } from '@/lib/mock-database'
 
 // Configure for Cloudflare Pages Edge Runtime
 export async function GET(request: NextRequest) {
   try {
     const db = (process.env as any).DB
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId') || 'user_003'
+    const currentUser = getCurrentUser(request)
+    const userId = searchParams.get('userId') || currentUser?.id
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
+
+      if (!userId) {
+        return NextResponse.json(
+          { success: false, error: 'User ID diperlukan' },
+          { status: 400 }
+        )
+      }
+
+      const mockUser = findMockUserById(userId)
+      if (!mockUser) {
+        return NextResponse.json(
+          { success: false, error: 'User tidak dijumpai' },
+          { status: 404 }
+        )
+      }
+
+      const { password_hash, ...profile } = mockUser
       return NextResponse.json({
         success: true,
-        data: {
-          id: 'user_003',
-          email: 'ahmad@ilkkm.edu.my',
-          nama: 'Ahmad Bin Ali',
-          peranan: 'pelajar',
-          fakulti: 'Kejururawatan',
-          no_telefon: '0123456789',
-          no_matrik: 'ILK2023001',
-          no_staf: null,
-          status: 'aktif'
-        }
+        data: profile
       })
     }
 

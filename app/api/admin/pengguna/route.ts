@@ -1,9 +1,10 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/session'
 import { logCRUD } from '@/lib/activity-logger'
 import { hashPassword } from '@/lib/password'
+import { getMockUsers } from '@/lib/mock-database'
 
 // Configure for Cloudflare Pages Edge Runtime
 export async function GET(request: NextRequest) {
@@ -12,22 +13,15 @@ export async function GET(request: NextRequest) {
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
-        data: [
-          {
-            id: 'user_001',
-            email: 'admin@ilkkm.edu.my',
-            nama: 'Admin User',
-            peranan: 'admin',
-            fakulti: 'ICT Department',
-            no_telefon: '0123456789',
-            no_matrik: null,
-            no_staf: 'STF2023001',
-            status: 'aktif',
-            created_at: new Date().toISOString()
-          }
-        ]
+        data: getMockUsers().map(({ password_hash, ...user }) => user)
       })
     }
 
@@ -60,6 +54,12 @@ export async function POST(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Pengguna berjaya ditambah (Mock)',
@@ -142,6 +142,12 @@ export async function PUT(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Pengguna berjaya dikemaskini (Mock)'
@@ -230,6 +236,12 @@ export async function DELETE(request: NextRequest) {
 
     // Mock response for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       const count = body.ids ? body.ids.length : 1
       return NextResponse.json({
         success: true,
@@ -361,3 +373,4 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+

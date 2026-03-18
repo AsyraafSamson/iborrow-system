@@ -1,5 +1,4 @@
 'use client'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import {
@@ -10,9 +9,7 @@ import {
   CheckSquare,
   Bell,
   ClipboardList,
-  LogOut,
-  RotateCcw,
-} from 'lucide-react'
+  } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface BottomNavProps {
@@ -20,7 +17,6 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ activeTab }: BottomNavProps) {
-  const router = useRouter()
   const [userRole, setUserRole] = useState<string>('user')
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -54,23 +50,6 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    } catch (error) {
-      console.error('Logout error:', error)
-      localStorage.removeItem('user')
-      localStorage.removeItem('session_token')
-      router.push('/login')
-    }
-  }
-
   const getNavItems = () => {
     if (userRole === 'admin') {
       return [
@@ -101,7 +80,8 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
   const navItems = getNavItems()
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 bg-card border rounded-2xl shadow-lg p-3 flex justify-around items-center z-50">
+    <div className="fixed bottom-4 left-4 right-4 z-50 rounded-2xl border bg-card/95 p-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-card/80">
+      <div className="flex items-center justify-around gap-2">
       {navItems.map((item) => {
         const Icon = item.icon
         const isActive = activeTab === item.label.toLowerCase()
@@ -126,14 +106,7 @@ export default function BottomNav({ activeTab }: BottomNavProps) {
           </Link>
         )
       })}
-
-      <button
-        onClick={handleLogout}
-        className="flex flex-col items-center text-destructive hover:text-destructive/80"
-      >
-        <LogOut className="size-5" />
-        <div className="text-xs mt-1">Keluar</div>
-      </button>
+      </div>
     </div>
   )
 }

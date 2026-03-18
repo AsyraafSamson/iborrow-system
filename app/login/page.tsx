@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
+import { CircleAlert, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
@@ -31,7 +33,7 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (data.success) {
-        setSuccess(data.message + ' - Redirecting...')
+        setSuccess(`${data.message}. Mengarahkan anda ke halaman seterusnya...`)
         localStorage.setItem('user', JSON.stringify(data.user))
         if (data.token) {
           localStorage.setItem('session_token', data.token)
@@ -40,12 +42,12 @@ export default function LoginPage() {
           router.push(data.redirectTo)
         }, 1000)
       } else {
-        setError(data.error || 'Login failed')
+        setError(data.error || 'Log masuk gagal')
         setLoading(false)
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError('Network error. Please try again.')
+      setError('Ralat rangkaian. Sila cuba lagi.')
       setLoading(false)
     }
   }
@@ -63,7 +65,15 @@ export default function LoginPage() {
         <CardContent>
           {error && (
             <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-              {error}
+              <div className="flex items-start gap-2">
+                <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                <div className="space-y-1 text-left">
+                  <p>{error}</p>
+                  <p className="text-xs text-destructive/80">
+                    Semak semula ejaan email ILKKM dan kata laluan anda sebelum cuba lagi.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           {success && (
@@ -84,20 +94,33 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password"
-                required
-              />
+              <Label htmlFor="password">Kata Laluan</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan kata laluan"
+                  className="pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'Sembunyikan kata laluan' : 'Lihat kata laluan'}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Logging in...' : 'Log Masuk'}
+              {loading ? 'Sedang log masuk...' : 'Log Masuk'}
             </Button>
           </form>
+
         </CardContent>
       </Card>
     </div>

@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Simple JWT-like token encoding/decoding for Edge Runtime
-// Using base64 encoding with a secret key
+// Simple JWT-like token encoding/decoding for runtime-compatible sessions
 
-const SECRET_KEY = process.env.SESSION_SECRET || 'iborrow-secret-key-change-in-production'
+function getSessionSecret(): string {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET
+  }
+
+  if (process.env.NODE_ENV !== 'production') {
+    return 'local-dev-session-secret'
+  }
+
+  throw new Error('SESSION_SECRET is not configured')
+}
 
 interface SessionUser {
   id: string
@@ -20,6 +29,7 @@ interface SessionUser {
  * Create a session token from user data
  */
 export function createSessionToken(user: SessionUser): string {
+  const secretKey = getSessionSecret()
   const payload = {
     user,
     exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours expiry
@@ -29,7 +39,7 @@ export function createSessionToken(user: SessionUser): string {
   const encoded = btoa(jsonPayload) // Base64 encode
 
   // Simple signature (not cryptographically secure, but works for Edge)
-  const signature = btoa(SECRET_KEY + encoded)
+  const signature = btoa(secretKey + encoded)
 
   return `${encoded}.${signature}`
 }
@@ -39,10 +49,11 @@ export function createSessionToken(user: SessionUser): string {
  */
 export function verifySessionToken(token: string): SessionUser | null {
   try {
+    const secretKey = getSessionSecret()
     const [encoded, signature] = token.split('.')
 
     // Verify signature
-    const expectedSignature = btoa(SECRET_KEY + encoded)
+    const expectedSignature = btoa(secretKey + encoded)
     if (signature !== expectedSignature) {
       return null
     }

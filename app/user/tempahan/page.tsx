@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ClipboardX } from 'lucide-react'
 
 interface Tempahan {
   id: string
@@ -162,19 +164,19 @@ export default function UserTempahan() {
         </Card>
 
         {loading ? (
-          <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+          <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan tempahan anda...</CardContent></Card>
         ) : filteredTempahan.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
-              <h3 className="text-lg font-medium mb-2">
-                {activeTab === 'active' ? 'Tiada Tempahan Aktif' : 'Tiada Tempahan'}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {activeTab === 'active' ? 'Anda tidak mempunyai tempahan yang sedang aktif' : 'Anda belum membuat sebarang tempahan'}
-              </p>
-              <Link href="/user/barang">
-                <Button size="sm">Lihat Barang Tersedia</Button>
-              </Link>
+            <CardContent className="p-4">
+              <EmptyState
+                icon={ClipboardX}
+                title={activeTab === 'active' ? 'Tiada tempahan aktif' : 'Tiada tempahan direkodkan'}
+                description={activeTab === 'active'
+                  ? 'Semua tempahan anda telah selesai atau belum dibuat. Anda boleh buat tempahan baharu bila-bila masa.'
+                  : 'Belum ada tempahan dalam rekod anda. Mulakan dengan memilih barang yang tersedia.'}
+                actionHref="/user/barang"
+                actionLabel="Lihat Barang Tersedia"
+              />
             </CardContent>
           </Card>
         ) : (

@@ -1,4 +1,4 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser, requireRole } from '@/lib/session'
@@ -16,6 +16,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         data: []
@@ -79,6 +85,12 @@ export async function PUT(request: NextRequest) {
     const { requestId, action, response, scheduledTime } = await request.json()
 
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
         message: 'Return request updated (Mock)'
@@ -227,3 +239,4 @@ export async function PUT(request: NextRequest) {
     }, { status: 500 })
   }
 }
+

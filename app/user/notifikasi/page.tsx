@@ -91,7 +91,7 @@ export default function UserNotifikasi() {
 
         <div className="space-y-3">
           {loading ? (
-            <Card><CardContent className="p-8 text-center text-muted-foreground">Loading...</CardContent></Card>
+            <Card><CardContent className="p-8 text-center text-muted-foreground">Sedang memuatkan notifikasi anda...</CardContent></Card>
           ) : notifications.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">

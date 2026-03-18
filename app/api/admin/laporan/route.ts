@@ -1,6 +1,7 @@
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { getMockLaporanData } from '@/lib/mock-database'
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,39 +9,15 @@ export async function GET(request: NextRequest) {
 
     // Mock data for local dev
     if (!db || typeof db.prepare !== 'function') {
+      if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { success: false, error: 'Database tidak tersedia. Sila hubungi admin.' },
+          { status: 503 }
+        )
+      }
       return NextResponse.json({
         success: true,
-        data: {
-          ringkasan: {
-            totalTempahan: 124,
-            tempahanPending: 8,
-            tempahanDiluluskan: 23,
-            tempahanSelesai: 87,
-            tempahanDitolak: 6,
-          },
-          tempahanBulan: [
-            { bulan: 'Okt', jumlah: 18 },
-            { bulan: 'Nov', jumlah: 22 },
-            { bulan: 'Dis', jumlah: 15 },
-            { bulan: 'Jan', jumlah: 27 },
-            { bulan: 'Feb', jumlah: 20 },
-            { bulan: 'Mac', jumlah: 22 },
-          ],
-          topBarang: [
-            { namaBarang: 'Laptop Dell Latitude 5420', kategori: 'Komputer', jumlahTempahan: 34 },
-            { namaBarang: 'Projektor Epson EB-X41', kategori: 'Multimedia', jumlahTempahan: 28 },
-            { namaBarang: 'Kamera Canon EOS 90D', kategori: 'Multimedia', jumlahTempahan: 21 },
-            { namaBarang: 'Tablet Samsung Galaxy Tab S8', kategori: 'Komputer', jumlahTempahan: 19 },
-            { namaBarang: 'Mic Wireless Shure SM58', kategori: 'Audio', jumlahTempahan: 14 },
-          ],
-          barangMengikutKategori: [
-            { kategori: 'Komputer', jumlah: 20 },
-            { kategori: 'Multimedia', jumlah: 13 },
-            { kategori: 'Rangkaian', jumlah: 6 },
-            { kategori: 'Audio', jumlah: 8 },
-            { kategori: 'Pencetak', jumlah: 4 },
-          ],
-        }
+        data: getMockLaporanData()
       })
     }
 
@@ -96,3 +73,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
+

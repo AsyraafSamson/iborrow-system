@@ -2,7 +2,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowRight, BellRing, Boxes, CheckSquare, Clock3 } from 'lucide-react'
 import BottomNav from '@/components/BottomNav'
+import EmptyState from '@/components/empty-state'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -59,30 +63,54 @@ export default function StaffDashboard() {
   return (
     <div className="min-h-screen bg-background p-3 pb-24">
       <div className="max-w-6xl mx-auto space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Dashboard Staff ICT</CardTitle>
-            <p className="text-sm text-muted-foreground">Selamat datang, {user.nama}</p>
+        <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-background to-background">
+          <CardHeader className="space-y-4">
+            <div className="space-y-2">
+              <Badge variant="secondary" className="w-fit">Peranan: Staff ICT</Badge>
+              <CardTitle className="text-2xl">Selamat datang, {user.nama}</CardTitle>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
+                Utamakan kelulusan tempahan, pantau permohonan pemulangan, dan pastikan stok sentiasa terkini.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button asChild size="lg" className="justify-between">
+                <Link href="/staff-ict/kelulusan">
+                  Luluskan Tempahan
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild variant="outline">
+                  <Link href="/staff-ict/return-requests">Semak Pemulangan</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/staff-ict/barang">Urus Barang</Link>
+                </Button>
+              </div>
+            </div>
           </CardHeader>
         </Card>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Card>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <Card className="border-orange-100 bg-orange-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-orange-600">{loading ? '...' : dashboardData.perluKelulusan}</div>
-              <div className="text-sm text-muted-foreground mt-1">Perlu Kelulusan</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Perlu Kelulusan</div>
+              <div className="text-xs text-muted-foreground">Permohonan yang menunggu tindakan anda</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-green-100 bg-green-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-green-600">{loading ? '...' : dashboardData.diluluskan}</div>
-              <div className="text-sm text-muted-foreground mt-1">Diluluskan</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Telah Diluluskan</div>
+              <div className="text-xs text-muted-foreground">Tempahan yang berjaya diproses</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="border-blue-100 bg-blue-50/60">
             <CardContent className="pt-4">
               <div className="text-3xl font-bold text-blue-600">{loading ? '...' : dashboardData.totalBarang}</div>
-              <div className="text-sm text-muted-foreground mt-1">Total Barang</div>
+              <div className="mt-1 text-sm font-medium text-foreground">Jumlah Barang</div>
+              <div className="text-xs text-muted-foreground">Stok yang sedang diuruskan</div>
             </CardContent>
           </Card>
         </div>
@@ -103,7 +131,12 @@ export default function StaffDashboard() {
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-sm">Tiada aktiviti terkini</div>
+                <EmptyState
+                  icon={Clock3}
+                  title="Belum ada aktiviti baharu"
+                  description="Apabila ada tempahan atau pemulangan baharu, ringkasannya akan muncul di sini."
+                  className="border-0 bg-transparent px-0 py-4"
+                />
               )}
             </div>
           </CardContent>
@@ -111,18 +144,21 @@ export default function StaffDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+            <CardTitle className="text-base">Tindakan Utama</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <Link href="/staff-ict/kelulusan" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
-                Urus Kelulusan
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <Link href="/staff-ict/kelulusan" className="rounded-xl bg-primary p-4 text-center text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
+                <CheckSquare className="mx-auto mb-2 h-5 w-5" />
+                Luluskan Tempahan
               </Link>
-              <Link href="/staff-ict/barang" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
+              <Link href="/staff-ict/return-requests" className="rounded-xl bg-secondary p-4 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                <BellRing className="mx-auto mb-2 h-5 w-5" />
+                Urus Pemulangan
+              </Link>
+              <Link href="/staff-ict/barang" className="rounded-xl bg-secondary p-4 text-center text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80">
+                <Boxes className="mx-auto mb-2 h-5 w-5" />
                 Urus Barang
-              </Link>
-              <Link href="/staff-ict/laporan/keseluruhan" className="bg-secondary p-3 rounded-lg text-center text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium">
-                Lihat Laporan
               </Link>
             </div>
           </CardContent>
